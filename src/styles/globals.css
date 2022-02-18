@@ -1,0 +1,34 @@
+:root {
+  --size-content-3: 60ch;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background-clr: hsl(0, 0%, 7%);
+    --foreground-clr: hsl(0, 0%, 100%);
+  }
+
+  /* Remove once supported by firefox */
+  @supports not (color-scheme: dark) {
+    html {
+      background-color: var(--background-clr);
+      color: var(--foreground-clr);
+    }
+
+    a {
+      color: rgb(158, 158, 255);
+    }
+
+    a:active {
+      color: rgb(255, 158, 158);
+    }
+  }
+}
+
+.flex {
+  display: flex;
+}
+
+.flex-col {
+  flex-direction: column;
+}
