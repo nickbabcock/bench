@@ -1,12 +1,11 @@
 import { formatFloat } from "@/lib/format";
 import { useState } from "react";
-import { getHarness } from ".";
 import { BenchmarkResult } from "./engine";
-import { useBenchmarkHarness } from "./HarnessProvider";
+import { getHarness, useBenchmarkHarness } from "./HarnessProvider";
 
 export const AllocationForm: React.FC<{}> = () => {
-  const [text, setText] = useState("");
-  const [iterations, setIterations] = useState(0);
+  const [text, setText] = useState("helloworld");
+  const [iterations, setIterations] = useState(100_000);
   const benchmark = useBenchmarkHarness();
   const [results, setResults] = useState<BenchmarkResult[]>([]);
 

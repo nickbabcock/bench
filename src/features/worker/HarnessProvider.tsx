@@ -11,7 +11,7 @@ interface HarnessState {
 
 type ContextState = MutableRefObject<HarnessState | undefined>;
 
-const ReplayParserContext = React.createContext<ContextState | undefined>(
+const HarnessContext = React.createContext<ContextState | undefined>(
   undefined
 );
 
@@ -26,6 +26,8 @@ export const BenchmarkHarnessProvider: React.FC<{}> = ({ children }) => {
         worker,
         rawWorker,
       };
+
+      worker.initialize();
     }
 
     effect();
@@ -40,14 +42,14 @@ export const BenchmarkHarnessProvider: React.FC<{}> = ({ children }) => {
   }, []);
 
   return (
-    <ReplayParserContext.Provider value={workerRef}>
+    <HarnessContext.Provider value={workerRef}>
       {children}
-    </ReplayParserContext.Provider>
+    </HarnessContext.Provider>
   );
 };
 
 export function useBenchmarkHarness() {
-  const context = React.useContext(ReplayParserContext);
+  const context = React.useContext(HarnessContext);
   if (context === undefined) {
     throw new Error(
       "useBenchmarkHarness must be used within a BenchmarkHarnessProvider"

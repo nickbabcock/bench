@@ -1,4 +1,4 @@
-import { AllocationForm } from ".";
+import { AllocationForm } from "./AllocationForm";
 import { BenchmarkHarnessProvider } from "./HarnessProvider";
 
 export const Allocation: React.FC<{}> = () => {
