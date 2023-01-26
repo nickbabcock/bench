@@ -6,7 +6,7 @@ const nextConfig = {
     config.output.assetModuleFilename = `static/[hash][ext]`;
     config.output.publicPath = `/_next/`;
     config.module.rules.push({
-      test: /\.(wasm|replay)$/,
+      test: /\.(wasm)$/,
       type: "asset/resource",
     });
     return config;

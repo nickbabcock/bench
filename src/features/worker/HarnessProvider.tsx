@@ -11,11 +11,13 @@ interface HarnessState {
 
 type ContextState = MutableRefObject<HarnessState | undefined>;
 
-const HarnessContext = React.createContext<ContextState | undefined>(
-  undefined
-);
+const HarnessContext = React.createContext<ContextState | undefined>(undefined);
 
-export const BenchmarkHarnessProvider: React.FC<{}> = ({ children }) => {
+export const BenchmarkHarnessProvider = ({
+  children,
+}: {
+  children: React.ReactNode;
+}) => {
   const workerRef = React.useRef<HarnessState>();
 
   useEffect(() => {

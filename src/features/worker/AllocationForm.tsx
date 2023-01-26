@@ -28,7 +28,12 @@ export const AllocationForm: React.FC<{}> = () => {
           onChange={(e) => setIterations(+e.target.value)}
         />
       </label>
-      <button onClick={runBenchmark}>Run</button>
+      <button
+        className="btn border-2 border-gray-300 bg-gray-50 focus-visible:outline-blue-600 active:bg-gray-200 enabled:hover:border-blue-400 enabled:hover:bg-blue-50 disabled:opacity-40 dark:text-slate-700"
+        onClick={runBenchmark}
+      >
+        Run
+      </button>
       <ul>
         {results.map((x, i) => (
           <li key={i}>{formatFloat(x.elapsedMs)}ms</li>

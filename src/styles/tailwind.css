@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+a,
+.link {
+  @apply font-medium text-gray-700 underline hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200;
+}
+
+body {
+  @apply bg-zinc-100 text-slate-700 dark:bg-zinc-800 dark:text-slate-100;
+}
+
+.btn {
+  @apply inline-flex cursor-default justify-center rounded-md py-1 px-4 text-base font-semibold tracking-tight shadow-sm focus:outline-none focus-visible:outline-2 focus-visible:outline-offset-2;
+}
