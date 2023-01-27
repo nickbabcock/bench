@@ -1,5 +1,5 @@
-import wasmPath from "../../../crate/pkg/bench_wasm_bg.wasm";
-import init, * as wasmModule from "../../../crate/pkg/bench_wasm";
+import wasmPath from "../../../packages/alloc/pkg/alloc_bg.wasm";
+import init, * as wasmModule from "../../../packages/alloc/pkg/alloc";
 import { timeit } from "@/lib/timeit";
 import { formatFloat } from "@/lib/format";
 

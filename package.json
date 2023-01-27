@@ -5,19 +5,24 @@
   "scripts": {
     "dev": "next dev",
     "build": "npm run build:wasm && next build",
-    "build:wasm": "wasm-pack build -t web crate",
+    "build:optimize": "find ./packages/ -ipath '*/pkg/*.wasm' -print0 | xargs -0 -I{} wasm-opt --enable-simd -O2 -o {} {}",
+    "build:wasm": "wasm-pack build -t web packages/alloc && wasm-pack build -t web packages/br-read && wasm-pack build -t web packages/br-write && wasm-pack build -t web packages/lz4 && wasm-pack build -t web packages/miniz && wasm-pack build -t web packages/zstd",
     "format": "npx prettier@latest --write 'src'",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
+    "clsx": "^1.2.1",
     "comlink": "^4.3.1",
+    "fflate": "^0.7.4",
     "next": "13.1.5",
+    "pako": "^2.1.0",
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
   "devDependencies": {
     "@types/node": "18.11.18",
+    "@types/pako": "^2.0.0",
     "@types/react": "18.0.27",
     "eslint": "8.32.0",
     "eslint-config-next": "13.1.5",

@@ -1,5 +1,6 @@
+import { Button } from "@/components/Button";
 import { formatFloat } from "@/lib/format";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { BenchmarkResult } from "./engine";
 import { getHarness, useBenchmarkHarness } from "./HarnessProvider";
 
@@ -8,6 +9,8 @@ export const AllocationForm: React.FC<{}> = () => {
   const [iterations, setIterations] = useState(100_000);
   const benchmark = useBenchmarkHarness();
   const [results, setResults] = useState<BenchmarkResult[]>([]);
+  const inputId = useId();
+  const iterationsId = useId();
 
   const runBenchmark = async () => {
     const harness = getHarness(benchmark);
@@ -16,24 +19,28 @@ export const AllocationForm: React.FC<{}> = () => {
   };
 
   return (
-    <div className="flex flex-col">
-      <label>
-        Text:
-        <input value={text} onChange={(e) => setText(e.target.value)} />
-      </label>
-      <label>
-        Iterations:
+    <div className="mt-5 flex flex-col space-y-4">
+      <div className="grid grid-cols-[90px_200px] items-center gap-y-2">
+        <label htmlFor={inputId}>Text:</label>
         <input
+          id={inputId}
+          className="h-10 rounded border border-slate-500 px-4 text-lg"
+          value={text}
+          onChange={(e) => setText(e.target.value)}
+        />
+
+        <label htmlFor={iterationsId}>Iterations:</label>
+        <input
+          id={iterationsId}
+          className="h-10 rounded border border-slate-500 px-4 text-lg"
           value={iterations}
           onChange={(e) => setIterations(+e.target.value)}
         />
-      </label>
-      <button
-        className="btn border-2 border-gray-300 bg-gray-50 focus-visible:outline-blue-600 active:bg-gray-200 enabled:hover:border-blue-400 enabled:hover:bg-blue-50 disabled:opacity-40 dark:text-slate-700"
-        onClick={runBenchmark}
-      >
+      </div>
+
+      <Button className="w-24" onClick={runBenchmark}>
         Run
-      </button>
+      </Button>
       <ul>
         {results.map((x, i) => (
           <li key={i}>{formatFloat(x.elapsedMs)}ms</li>
