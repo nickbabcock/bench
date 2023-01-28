@@ -1,9 +1,10 @@
 import { Button } from "@/components/Button";
 import { formatFloat } from "@/lib/format";
 import { transfer, wrap } from "comlink";
-import { useMemo, useReducer, useRef, useState } from "react";
+import { useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { FileInput } from "./FileInput";
 import type { WasmWorker } from "./worker";
+import type { Chart } from "chart.js/auto";
 
 type CompressionResults =
   | {
@@ -40,15 +41,17 @@ type CompressionProfileData = {
   algorithm: string;
   elapsedMs: number;
   size: number;
-}
-
-type BenchmarkProfile = ({
-  action: "compression";
-} & CompressionProfileData) | {
-  action: "decompression";
-  algorithm: string;
-  elapsedMs: number;
 };
+
+type BenchmarkProfile =
+  | ({
+      action: "compression";
+    } & CompressionProfileData)
+  | {
+      action: "decompression";
+      algorithm: string;
+      elapsedMs: number;
+    };
 
 function compressionReducer(
   state: CompressionResults,
@@ -97,16 +100,38 @@ const useCompressionResults = () => {
     dispatch({ kind: "new-file", ...args });
   const newStatus = (status: string) => dispatch({ kind: "status", status });
   const newCompressionResult = (result: CompressionProfileData) =>
-    dispatch({ kind: "new-result", result: {action: "compression", ...result} });
-  const newDecompressionResult = (result: { algorithm: string; elapsedMs: number }) =>
-    dispatch({ kind: "new-result", result: {action: "decompression", ...result} });
+    dispatch({
+      kind: "new-result",
+      result: { action: "compression", ...result },
+    });
+  const newDecompressionResult = (result: {
+    algorithm: string;
+    elapsedMs: number;
+  }) =>
+    dispatch({
+      kind: "new-result",
+      result: { action: "decompression", ...result },
+    });
   const finish = () => dispatch({ kind: "finish" });
-  return { state, newFile, newStatus, newCompressionResult, finish, newDecompressionResult };
+  return {
+    state,
+    newFile,
+    newStatus,
+    newCompressionResult,
+    finish,
+    newDecompressionResult,
+  };
 };
 
 export const Compression = () => {
-  const { state, newFile, newStatus, newCompressionResult, finish, newDecompressionResult } =
-    useCompressionResults();
+  const {
+    state,
+    newFile,
+    newStatus,
+    newCompressionResult,
+    finish,
+    newDecompressionResult,
+  } = useCompressionResults();
 
   const [isCancelling, setCancelling] = useState(false);
   const cancelSignal = useRef(isCancelling);
@@ -134,7 +159,10 @@ export const Compression = () => {
         const decomp = await worker.nativeCompress(
           transfer(comp.out, [comp.out.buffer])
         );
-        newDecompressionResult({ algorithm: "native", elapsedMs: decomp.elapsedMs });
+        newDecompressionResult({
+          algorithm: "native",
+          elapsedMs: decomp.elapsedMs,
+        });
       }
     }
 
@@ -163,11 +191,14 @@ export const Compression = () => {
           elapsedMs: comp.elapsedMs,
           size: comp.out.length,
         });
-  
+
         const decomp = await worker.zstdDecompress(
           transfer(comp.out, [comp.out.buffer])
         );
-        newDecompressionResult({ algorithm: algorithm, elapsedMs: decomp.elapsedMs });
+        newDecompressionResult({
+          algorithm: algorithm,
+          elapsedMs: decomp.elapsedMs,
+        });
       }
     }
 
@@ -182,11 +213,14 @@ export const Compression = () => {
           elapsedMs: comp.elapsedMs,
           size: comp.out.length,
         });
-  
+
         const decomp = await worker.minizDecompress(
           transfer(comp.out, [comp.out.buffer])
         );
-        newDecompressionResult({ algorithm: algorithm, elapsedMs: decomp.elapsedMs });
+        newDecompressionResult({
+          algorithm: algorithm,
+          elapsedMs: decomp.elapsedMs,
+        });
       }
     }
 
@@ -252,7 +286,7 @@ export const Compression = () => {
     <>
       <FileInput onChange={onFile} />
       {state.kind === "running" ? (
-        <div className="grid grid-cols-2">
+        <div className="mx-auto grid max-w-prose grid-cols-2">
           <p className="text-xl">Benchmarking {state.status}</p>
           <Button
             className="text-xl"
@@ -264,10 +298,69 @@ export const Compression = () => {
         </div>
       ) : null}
       {state.kind === "running" || state.kind === "finished" ? (
-        <ResultReport iterations={iterations} {...state} />
+        <div className="my-5 overflow-auto">
+          <ResultTable iterations={iterations} {...state} />
+        </div>
+      ) : null}
+      {state.kind === "finished" ? (
+        <div className="mx-auto max-w-prose">
+          <ResultChart {...state} />
+        </div>
       ) : null}
     </>
   );
+};
+
+type ResultChartProps = {
+  filename: string;
+  bytes: number;
+  results: BenchmarkProfile[];
+};
+
+const ResultChart = (props: ResultChartProps) => {
+  const canvasRef = useRef(null);
+  const chartRef = useRef<Chart | undefined>(undefined);
+
+  useEffect(() => {
+    async function runEffect() {
+      const { Chart } = await import("chart.js/auto");
+
+      if (canvasRef.current === null) {
+        return;
+      }
+
+      const chart = new Chart(canvasRef.current, {
+        type: "bar",
+        data: {
+          labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+          datasets: [
+            {
+              label: "# of Votes",
+              data: [12, 19, 3, 5, 2, 3],
+              borderWidth: 1,
+            },
+          ],
+        },
+        options: {
+          scales: {
+            y: {
+              beginAtZero: true,
+            },
+          },
+        },
+      });
+      chartRef.current = chart;
+    }
+
+    runEffect();
+
+    return () => {
+      chartRef.current?.destroy();
+      chartRef.current = undefined;
+    };
+  }, []);
+
+  return <canvas ref={canvasRef}></canvas>;
 };
 
 const formatBytes = (bytes: number) => {
@@ -289,8 +382,8 @@ type ResultRow = {
   algorithm: string;
   payload: readonly [number | undefined, number | undefined];
   ratio: number;
-  runs: [number[], number[]]
-}
+  runs: [number[], number[]];
+};
 
 const resultRows = (bytes: number, rows: BenchmarkProfile[]) => {
   let currentAlgorithm = "";
@@ -315,7 +408,7 @@ const resultRows = (bytes: number, rows: BenchmarkProfile[]) => {
       });
       currentAlgorithm = row.algorithm;
     }
-    
+
     if (row.action === "decompression") {
       decomps.push(mbs);
     } else {
@@ -326,47 +419,74 @@ const resultRows = (bytes: number, rows: BenchmarkProfile[]) => {
   return results;
 };
 
-type ResultReportProps = {
+type ResultTableProps = {
   filename: string;
   bytes: number;
   results: BenchmarkProfile[];
   iterations: number;
 };
 
-const ResultReport = ({
+const ResultTable = ({
   filename,
   bytes,
   results,
   iterations,
-}: ResultReportProps) => {
+}: ResultTableProps) => {
   const rows = useMemo(() => resultRows(bytes, results), [bytes, results]);
   return (
-    <table className="my-5 w-full table-fixed border border-slate-400 dark:border-slate-500">
+    <table className="mx-auto w-[800px] table-fixed border-collapse">
       <thead>
         <tr>
-          <th colSpan={10}>
+          <th
+            className="p-4 text-lg text-slate-600 dark:text-slate-200"
+            colSpan={10}
+          >
             {filename} - ({formatBytes(bytes)})
           </th>
         </tr>
         <tr>
-          <th className="text-left" rowSpan={2}>
+          <th
+            className="border-b p-4 pl-4 pt-0 pb-3 text-left text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            rowSpan={2}
+          >
             Name
           </th>
-          <th rowSpan={2}>Ratio</th>
-          <th colSpan={2}>Payload (kB)</th>
-          <th colSpan={3}>Compression (mB/s)</th>
-          <th colSpan={3}>Decompression (mB/s)</th>
+          <th
+            className="border-b p-4 pl-4 pt-0 pb-3 text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            rowSpan={2}
+          >
+            Ratio
+          </th>
+          <th className="text-slate-600 dark:text-slate-200" colSpan={2}>
+            Payload (kB)
+          </th>
+          <th className="text-slate-600 dark:text-slate-200" colSpan={3}>
+            Compression (mB/s)
+          </th>
+          <th className="text-slate-600 dark:text-slate-200" colSpan={3}>
+            Decompression (mB/s)
+          </th>
         </tr>
         <tr>
-          <th className="text-right">Read</th>
-          <th className="text-right">Write</th>
+          <th className="border-b p-4 pl-4 pt-0 pb-3 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
+            Read
+          </th>
+          <th className="border-b p-4 pl-4 pt-0 pb-3 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
+            Write
+          </th>
           {[...Array(iterations)].map((_, i) => (
-            <th key={`compression-${i}`} className="text-right">
+            <th
+              key={`compression-${i}`}
+              className="border-b p-4 pl-4 pt-0 pb-3 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            >
               {i + 1}
             </th>
           ))}
           {[...Array(iterations)].map((_, i) => (
-            <th key={`decompression-${i}`} className="text-right">
+            <th
+              key={`decompression-${i}`}
+              className="border-b p-4 pl-4 pt-0 pb-3 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            >
               {i + 1}
             </th>
           ))}
