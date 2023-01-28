@@ -3,14 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "npm run build:wasm && next build",
+    "dev": "npm run build:wasm && next dev",
+    "deploy": "npm run build:wasm && npm run build:optimize && vercel deploy",
+    "build": "next build",
     "build:optimize": "find ./packages/ -ipath '*/pkg/*.wasm' -print0 | xargs -0 -I{} wasm-opt --enable-simd -O2 -o {} {}",
     "build:wasm": "wasm-pack build -t web packages/alloc && wasm-pack build -t web packages/br-read && wasm-pack build -t web packages/br-write && wasm-pack build -t web packages/lz4 && wasm-pack build -t web packages/miniz && wasm-pack build -t web packages/zstd",
     "format": "npx prettier@latest --write 'src'",
     "start": "next start",
-    "lint": "next lint",
-    "vercel": "./vercel.sh"
+    "lint": "next lint"
   },
   "dependencies": {
     "chart.js": "^4.2.0",
