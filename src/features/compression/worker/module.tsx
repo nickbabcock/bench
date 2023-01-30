@@ -7,6 +7,32 @@ import lz4Path from "../../../../packages/lz4/pkg/lz4_bg.wasm";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
 import type Pako from "pako";
+import { load } from "@/lib/wasm";
+
+const miniz = load({
+  js: () => import("../../../../packages/miniz/pkg/miniz"),
+  wasm: minizPath,
+});
+
+const zstd = load({
+  js: () => import("../../../../packages/zstd/pkg/zstd"),
+  wasm: zstdPath,
+});
+
+const lz4 = load({
+  js: () => import("../../../../packages/lz4/pkg/lz4"),
+  wasm: lz4Path,
+});
+
+const brRead = load({
+  js: () => import("../../../../packages/br-read/pkg/br_read"),
+  wasm: brReadPath,
+});
+
+const brWrite = load({
+  js: () => import("../../../../packages/br-write/pkg/br_write"),
+  wasm: brWritePath,
+});
 
 export async function nativeCompress(data: Uint8Array) {
   const [response, elapsedMs] = await timeit(() => {
@@ -59,57 +85,61 @@ export async function fflateDecompress(data: Uint8Array) {
 }
 
 export async function minizCompress(data: Uint8Array, level: number) {
-  const mod = await import("../../../../packages/miniz/pkg/miniz");
-  await mod.default(minizPath);
+  const mod = await miniz();
   const [out, elapsedMs] = await timeit(() => mod.compress(data, level));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function minizDecompress(data: Uint8Array) {
-  const mod = await import("../../../../packages/miniz/pkg/miniz");
-  await mod.default(minizPath);
+  const mod = await miniz();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function zstdCompress(data: Uint8Array, level: number) {
-  const mod = await import("../../../../packages/zstd/pkg/zstd");
-  await mod.default(zstdPath);
+  const mod = await zstd();
   const [out, elapsedMs] = await timeit(() => mod.compress(data, level));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function zstdDecompress(data: Uint8Array) {
-  const mod = await import("../../../../packages/zstd/pkg/zstd");
-  await mod.default(zstdPath);
+  const mod = await zstd();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function lz4Compress(data: Uint8Array) {
-  const mod = await import("../../../../packages/lz4/pkg/lz4");
-  await mod.default(lz4Path);
+  const mod = await lz4();
   const [out, elapsedMs] = await timeit(() => mod.compress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function lz4Decompress(data: Uint8Array) {
-  const mod = await import("../../../../packages/lz4/pkg/lz4");
-  await mod.default(lz4Path);
+  const mod = await lz4();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function brotliCompress(data: Uint8Array, level: number) {
-  const mod = await import("../../../../packages/br-write/pkg/br_write");
-  await mod.default(brWritePath);
+  const mod = await brWrite();
   const [out, elapsedMs] = await timeit(() => mod.compress(data, level));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function brotliDecompress(data: Uint8Array) {
-  const mod = await import("../../../../packages/br-read/pkg/br_read");
-  await mod.default(brReadPath);
+  const mod = await brRead();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
+}
+
+export async function twiddleCompressed(data: Uint8Array) {
+  const mod = await miniz();
+  const [out, elapsedMs] = await timeit(() => mod.twiddle_compressed(data));
+  return { out, elapsedMs };
+}
+
+export async function twiddleUncompressed(data: Uint8Array) {
+  const mod = await miniz();
+  const [out, elapsedMs] = await timeit(() => mod.twiddle_uncompressed(data));
+  return { out, elapsedMs };
 }

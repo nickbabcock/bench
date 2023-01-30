@@ -1,20 +1,31 @@
 import { Button } from "@/components/Button";
 import { formatFloat } from "@/lib/format";
 import { useId, useState } from "react";
-import { BenchmarkResult } from "./engine";
-import { getHarness, useBenchmarkHarness } from "./HarnessProvider";
+import { BenchmarkResult } from "./worker/module";
+import { wrap, releaseProxy } from "comlink";
+import type { WasmWorker } from "./worker";
+
+const runAllocation = async (text: string, iterations: number) => {
+  const rawWorker = new Worker(new URL("./worker", import.meta.url));
+  const worker = wrap<WasmWorker>(rawWorker);
+
+  try {
+    return await worker.allocation(text, iterations);
+  } finally {
+    worker[releaseProxy]();
+    rawWorker.terminate();
+  }
+}
 
 export const AllocationForm: React.FC<{}> = () => {
   const [text, setText] = useState("helloworld");
   const [iterations, setIterations] = useState(100_000);
-  const benchmark = useBenchmarkHarness();
   const [results, setResults] = useState<BenchmarkResult[]>([]);
   const inputId = useId();
   const iterationsId = useId();
 
   const runBenchmark = async () => {
-    const harness = getHarness(benchmark);
-    const result = await harness.allocation(text, iterations);
+    const result = await runAllocation(text, iterations);
     setResults([result, ...results]);
   };
 

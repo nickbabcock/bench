@@ -1,7 +1,7 @@
 import { GithubIcon } from "@/components/icons";
 import { PageHead } from "@/components/PageHead";
 import { Compression } from "@/features/compression";
-import { Allocation } from "@/features/worker";
+import { Allocation } from "@/features/allocation";
 import type { NextPage } from "next";
 import Link from "next/link";
 
