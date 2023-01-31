@@ -8,7 +8,7 @@ export type BenchmarkResult = {
 
 const alloc = load({
   js: () => import("../../../../packages/alloc/pkg/alloc"),
-  wasm: wasmPath
+  wasm: wasmPath,
 });
 
 export async function allocation(
@@ -16,9 +16,7 @@ export async function allocation(
   iterations: number
 ): Promise<BenchmarkResult> {
   const mod = await alloc();
-  const [_, elapsedMs] = await timeit(() =>
-    mod.allocation(corpus, iterations)
-  );
+  const [_, elapsedMs] = await timeit(() => mod.allocation(corpus, iterations));
 
   return { elapsedMs };
 }

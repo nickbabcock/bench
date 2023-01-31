@@ -15,7 +15,7 @@ const runAllocation = async (text: string, iterations: number) => {
     worker[releaseProxy]();
     rawWorker.terminate();
   }
-}
+};
 
 export const AllocationForm: React.FC<{}> = () => {
   const [text, setText] = useState("helloworld");

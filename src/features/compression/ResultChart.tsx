@@ -103,8 +103,8 @@ export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
   );
   const dataSetsRef = useRef(datasets);
   useIsomorphicLayoutEffect(() => {
-    dataSetsRef.current = datasets; 
-  })
+    dataSetsRef.current = datasets;
+  });
 
   useEffect(() => {
     const ref = canvasRef.current;

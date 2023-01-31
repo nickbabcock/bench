@@ -13,10 +13,7 @@ const Home: NextPage = () => {
         <div className="mx-auto grid max-w-prose grid-cols-[1fr_32px] gap-2 md:gap-6">
           <h1 className="text-2xl font-bold">Benchmarks</h1>
           <div>
-            <Link
-              target="_blank"
-              href="https://github.com/nickbabcock/wasm-bench"
-            >
+            <Link target="_blank" href="https://github.com/nickbabcock/bench">
               <GithubIcon alt="Benchmarks website Github Repo" />
             </Link>
           </div>
@@ -26,14 +23,24 @@ const Home: NextPage = () => {
             <h2 className="mb-2 text-lg font-bold">Compression</h2>
             <p className="text-lg">
               The compression benchmark allows one to locally run round-trip
-              compression statistics of a given file using various libraries and
-              codecs. All libraries are either native Browser APIs, a Javascript
-              library, or a Rust library compiled to Wasm, and may exhibit
-              differences in runtime depending on the platform or browser. See{" "}
-              <Link href="https://nickb.dev" target="_blank">
+              compression statistics on a given file. All libraries are either
+              native Browser APIs, a Javascript library, or a Rust library
+              compiled to Wasm. Runtime performance will differ from native
+              execution, the length of input, and the{" "}
+              <Link
+                href="https://00f.net/2023/01/04/webassembly-benchmark-2023/"
+                target="_blank"
+              >
+                Wasm runtime
+              </Link>
+              . See{" "}
+              <Link
+                href="https://nickb.dev/blog/wasm-compression-benchmarks-and-the-cost-of-missing-compression-apis/"
+                target="_blank"
+              >
                 blog post
               </Link>{" "}
-              for background.
+              for more info.
             </p>
           </div>
           <Compression />
