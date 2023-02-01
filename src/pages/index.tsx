@@ -8,7 +8,7 @@ import Link from "next/link";
 const Home: NextPage = () => {
   return (
     <main className="p-4">
-      <div className="space-y-16 divide-y-8">
+      <div className="space-y-16">
         <PageHead />
         <div className="mx-auto grid max-w-prose grid-cols-[1fr_32px] gap-2 md:gap-6">
           <h1 className="text-2xl font-bold">Benchmarks</h1>
