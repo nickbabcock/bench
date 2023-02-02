@@ -1,15 +1,6 @@
-import { useRef, KeyboardEvent } from "react";
+import { useRef, useId } from "react";
 import { useFileDrop } from "@/hooks";
 import clsx from "clsx";
-
-export function keyboardTrigger(fn: () => void) {
-  return (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.isPropagationStopped()) {
-      e.stopPropagation();
-      fn();
-    }
-  };
-}
 
 type FileInputProps = {
   onChange: (file: File) => void | Promise<void>;
@@ -22,8 +13,8 @@ export const FileInput = ({
   children,
   disabled = false,
 }: FileInputProps) => {
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const dropAreaRef = useRef<HTMLDivElement>(null);
+  const inputId = useId();
   const { isHovering: isFileHovering } = useFileDrop({
     onFile: onChange,
     target: dropAreaRef,
@@ -37,31 +28,28 @@ export const FileInput = ({
     }
   };
 
-  const labelFocus = () => fileInputRef.current?.click();
   return (
     <div
       className="mx-auto my-5 w-full max-w-prose flex-col space-y-1"
       ref={dropAreaRef}
     >
+      <input
+        id={inputId}
+        type="file"
+        className="peer absolute opacity-0"
+        disabled={disabled}
+        onChange={handleChange}
+      />
       <label
+        htmlFor={inputId}
         className={clsx(
-          "flex items-center gap-1  rounded-md border-2 border-dashed border-slate-600 p-4 hover:bg-slate-300 focus:border-indigo-500 focus:ring-indigo-500 hover:dark:bg-slate-800",
-          disabled ? "cursor-not-allowed saturate-0 " : "cursor-pointer",
+          "flex cursor-pointer items-center gap-1 rounded-md border-2 border-dashed border-slate-600 p-4 hover:bg-slate-300 peer-focus:border-indigo-500 peer-focus:ring-indigo-500 peer-disabled:cursor-not-allowed peer-disabled:saturate-0 hover:dark:bg-slate-800",
           !isFileHovering
             ? "bg-slate-200 dark:bg-slate-700"
             : "bg-slate-300 dark:bg-slate-800"
         )}
-        tabIndex={disabled ? -1 : 0}
-        onKeyUp={keyboardTrigger(labelFocus)}
       >
         {children}
-        <input
-          ref={fileInputRef}
-          type="file"
-          disabled={disabled}
-          hidden
-          onChange={handleChange}
-        />
       </label>
     </div>
   );
