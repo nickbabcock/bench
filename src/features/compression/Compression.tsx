@@ -200,7 +200,7 @@ const useRunCompressionBenchmarks = ({
     for (let level of [1, 6, 9]) {
       for (let i = 0; i < iterations && !cancelSignal.current; i++) {
         const algorithm = `miniz-${level}`;
-        newStatus(`algorithm: (${i + 1}/${iterations})`);
+        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
         const comp = await worker.minizCompress(data, level);
         newCompressionResult({
           algorithm: algorithm,
