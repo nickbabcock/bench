@@ -34,16 +34,10 @@ export function useFileDrop({ onFile, enabled = true, target }: FileDropProps) {
   });
 
   useEffect(() => {
-    let elem: Document | HTMLElement;
-    if (target) {
-      if (target.current === null) {
-        return;
-      } else {
-        elem = target.current;
-      }
-    } else {
-      elem = document;
+    if (target?.current === null) {
+      return;
     }
+    const elem = target ? target.current : document;
 
     function dragDrop(e: Event) {
       if (!(e instanceof DragEvent)) {
