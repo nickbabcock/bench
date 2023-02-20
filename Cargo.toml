@@ -5,7 +5,8 @@ members = [
     "packages/br-write",
     "packages/lz4",
     "packages/miniz",
-    "packages/zstd",
+    "packages/zstd-read",
+    "packages/zstd-write",
 ]
 
 [profile.release]

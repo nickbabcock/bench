@@ -11,7 +11,7 @@ const formatBytes = (bytes: number) => {
 const payloadSizes = {
   native: [0, 0],
   lz4: [13.94, 13.94],
-  zstd: [138.6, 138.6],
+  zstd: [48.1, 136],
   miniz: [25.17, 25.17],
   pako: [15.22, 15.22],
   fflate: [12.37, 12.37],
@@ -152,8 +152,12 @@ export const ResultTable = ({
           >
             <td className="pl-2">{row.algorithm}</td>
             <td className="text-right">{formatFloat(row.ratio)}</td>
-            <td className="text-right">{row.payload[0] ?? "---"}</td>
-            <td className="text-right">{row.payload[1] ?? "---"}</td>
+            <td className="text-right">
+              {row.payload[0] ? formatFloat(row.payload[0]) : "---"}
+            </td>
+            <td className="text-right">
+              {row.payload[1] ? formatFloat(row.payload[1]) : "---"}
+            </td>
 
             {[...Array(iterations)].map((_, i) => (
               <td key={`compression-${i}`} className="text-right">

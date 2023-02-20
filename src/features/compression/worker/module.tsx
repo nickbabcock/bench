@@ -2,7 +2,8 @@ import { timeit } from "@/lib/timeit";
 import brWritePath from "../../../../packages/br-write/pkg/br_write_bg.wasm";
 import brReadPath from "../../../../packages/br-read/pkg/br_read_bg.wasm";
 import minizPath from "../../../../packages/miniz/pkg/miniz_bg.wasm";
-import zstdPath from "../../../../packages/zstd/pkg/zstd_bg.wasm";
+import zstdReadPath from "../../../../packages/zstd-read/pkg/zstd_read_bg.wasm";
+import zstdWritePath from "../../../../packages/zstd-write/pkg/zstd_write_bg.wasm";
 import lz4Path from "../../../../packages/lz4/pkg/lz4_bg.wasm";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
@@ -14,9 +15,14 @@ const miniz = load({
   wasm: minizPath,
 });
 
-const zstd = load({
-  js: () => import("../../../../packages/zstd/pkg/zstd"),
-  wasm: zstdPath,
+const zstdRead = load({
+  js: () => import("../../../../packages/zstd-read/pkg/zstd_read"),
+  wasm: zstdReadPath,
+});
+
+const zstdWrite = load({
+  js: () => import("../../../../packages/zstd-write/pkg/zstd_write"),
+  wasm: zstdWritePath,
 });
 
 const lz4 = load({
@@ -97,13 +103,13 @@ export async function minizDecompress(data: Uint8Array) {
 }
 
 export async function zstdCompress(data: Uint8Array, level: number) {
-  const mod = await zstd();
+  const mod = await zstdWrite();
   const [out, elapsedMs] = await timeit(() => mod.compress(data, level));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
 export async function zstdDecompress(data: Uint8Array) {
-  const mod = await zstd();
+  const mod = await zstdRead();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
