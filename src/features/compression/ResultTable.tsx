@@ -106,7 +106,7 @@ export const ResultTable = ({
             Ratio
           </th>
           <th className="text-slate-600 dark:text-slate-200" colSpan={2}>
-            Library Size (kB)
+            Lib Size (gzip kB)
           </th>
           <th className="text-slate-600 dark:text-slate-200" colSpan={3}>
             Compression (MB/s)
