@@ -143,7 +143,7 @@ export const ResultTable = ({
       <tbody onPointerLeave={() => setActiveAlgorithms([])}>
         {rows.map((row) => (
           <tr
-            className="transition-colors duration-200 hover:bg-slate-200 dark:hover:bg-slate-700 aria-selected:bg-slate-200 aria-selected:dark:bg-slate-700"
+            className="transition-colors duration-200 hover:bg-slate-200 aria-selected:bg-slate-200 dark:hover:bg-slate-700 aria-selected:dark:bg-slate-700"
             onPointerEnter={() => setActiveAlgorithms([row.algorithm])}
             key={row.algorithm}
             aria-selected={actives.has(row.algorithm)}
