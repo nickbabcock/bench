@@ -26,6 +26,7 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
     pako: "#80b1d3",
     fflate: "#fdb462",
     brotli: "#b3de69",
+    zune: "#fccde5",
   };
 
   const colorMap = new Map(Object.entries(colors));
@@ -56,7 +57,7 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
         );
         const averageCompBpMs =
           bytes / (totalCompMs / compressions.length) || 0;
-        const ratio = bytes / compressions[0].size || 1;
+        const ratio = bytes / compressions[0]?.size || 1;
 
         const decompressions = group.filter(
           (x) => x.action === "decompression"

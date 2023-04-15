@@ -16,6 +16,7 @@ const payloadSizes = {
   pako: [15.22, 15.22],
   fflate: [12.37, 12.37],
   brotli: [137.77, 681.03],
+  zune: [19, undefined],
 } as const;
 
 const payloadSizesLookup = new Map(Object.entries(payloadSizes));
@@ -34,7 +35,7 @@ const resultRows = (bytes: number, rows: BenchmarkProfile[]) => {
   for (let i = 0; i < rows.length; i++) {
     const row = rows[i];
     const mbs = bytes / 1000 / 1000 / (row.elapsedMs / 1000);
-    if (row.algorithm !== currentAlgorithm && row.action === "compression") {
+    if (row.algorithm !== currentAlgorithm) {
       const payload = payloadSizesLookup.get(row.algorithm.split("-")[0]) ?? [
         undefined,
         undefined,
@@ -42,10 +43,11 @@ const resultRows = (bytes: number, rows: BenchmarkProfile[]) => {
 
       [comps, decomps] = [[], []];
 
+      const ratio = row.action == "compression" ? bytes / row.size : 1;
       results.push({
         algorithm: row.algorithm,
         payload,
-        ratio: bytes / row.size,
+        ratio,
         runs: [comps, decomps],
       });
       currentAlgorithm = row.algorithm;

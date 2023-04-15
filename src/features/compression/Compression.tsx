@@ -196,6 +196,8 @@ const useRunCompressionBenchmarks = ({
       }
     }
 
+    let deflatePayload: Uint8Array | undefined = undefined;
+
     // Best Speed, Default, and Best Compression
     for (let level of [1, 6, 9]) {
       for (let i = 0; i < iterations && !cancelSignal.current; i++) {
@@ -208,12 +210,27 @@ const useRunCompressionBenchmarks = ({
           size: comp.out.length,
         });
 
+        if (level === 6 && i === 0) {
+          deflatePayload = new Uint8Array(comp.out);
+        }
+
         const decomp = await worker.minizDecompress(
           transfer(comp.out, [comp.out.buffer])
         );
         newDecompressionResult({
           algorithm: algorithm,
           elapsedMs: decomp.elapsedMs,
+        });
+      }
+    }
+
+    if (deflatePayload) {
+      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+        newStatus(`zune deflate: (${i + 1}/${iterations})`);
+        const comp = await worker.zuneDecompress(deflatePayload);
+        newDecompressionResult({
+          algorithm: "zune",
+          elapsedMs: comp.elapsedMs,
         });
       }
     }

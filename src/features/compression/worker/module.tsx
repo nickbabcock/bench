@@ -5,6 +5,7 @@ import minizPath from "../../../../packages/miniz/pkg/miniz_bg.wasm";
 import zstdReadPath from "../../../../packages/zstd-read/pkg/zstd_read_bg.wasm";
 import zstdWritePath from "../../../../packages/zstd-write/pkg/zstd_write_bg.wasm";
 import lz4Path from "../../../../packages/lz4/pkg/lz4_bg.wasm";
+import zunePath from "../../../../packages/zune/pkg/zune_bg.wasm";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
 import type Pako from "pako";
@@ -38,6 +39,11 @@ const brRead = load({
 const brWrite = load({
   js: () => import("../../../../packages/br-write/pkg/br_write"),
   wasm: brWritePath,
+});
+
+const zune = load({
+  js: () => import("../../../../packages/zune/pkg/zune"),
+  wasm: zunePath,
 });
 
 export async function nativeCompress(data: Uint8Array) {
@@ -148,4 +154,10 @@ export async function twiddleUncompressed(data: Uint8Array) {
   const mod = await miniz();
   const [out, elapsedMs] = await timeit(() => mod.twiddle_uncompressed(data));
   return { out, elapsedMs };
+}
+
+export async function zuneDecompress(data: Uint8Array) {
+  const mod = await zune();
+  const [out, elapsedMs] = await timeit(() => mod.decompress(data));
+  return transfer({ out, elapsedMs }, [out.buffer]);
 }
