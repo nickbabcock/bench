@@ -8,7 +8,7 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-lz4_flex = { version = "0.10.0" }
+lz4_flex = { version = "0.11.0" }
 wasm-bindgen = "0.2.83"
 
 [package.metadata.wasm-pack.profile.release]
