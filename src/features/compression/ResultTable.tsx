@@ -78,10 +78,10 @@ export const ResultTable = ({
 }: ResultTableProps) => {
   const rows = useMemo(() => resultRows(bytes, results), [bytes, results]);
   const actives = new Set(
-    useCompressionUiState((state) => state.activeAlgorithms)
+    useCompressionUiState((state) => state.activeAlgorithms),
   );
   const { setActiveAlgorithms } = useCompressionUiState(
-    (state) => state.actions
+    (state) => state.actions,
   );
   return (
     <table className="mx-auto w-[800px] table-fixed border-collapse">

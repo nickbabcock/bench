@@ -13,7 +13,7 @@ const alloc = load({
 
 export async function allocation(
   corpus: string,
-  iterations: number
+  iterations: number,
 ): Promise<BenchmarkResult> {
   const mod = await alloc();
   const [_, elapsedMs] = await timeit(() => mod.allocation(corpus, iterations));

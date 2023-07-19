@@ -49,22 +49,22 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
       const data = [...groups.entries()].map(([algorithm, group]) => {
         const compressions = group.filter(
           (x): x is { action: "compression" } & CompressionProfileData =>
-            x.action === "compression"
+            x.action === "compression",
         );
         const totalCompMs = compressions.reduce(
           (acc, x) => acc + x.elapsedMs,
-          0
+          0,
         );
         const averageCompBpMs =
           bytes / (totalCompMs / compressions.length) || 0;
         const ratio = bytes / compressions[0]?.size || 1;
 
         const decompressions = group.filter(
-          (x) => x.action === "decompression"
+          (x) => x.action === "decompression",
         );
         const totalDecompMs = decompressions.reduce(
           (acc, x) => acc + x.elapsedMs,
-          0
+          0,
         );
         const averageDecompBpMs =
           bytes / (totalDecompMs / decompressions.length) || 0;
@@ -100,7 +100,7 @@ export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
 
   const datasets = useMemo(
     () => chartDatasets(bytes, results),
-    [bytes, results]
+    [bytes, results],
   );
   const dataSetsRef = useRef(datasets);
   useIsomorphicLayoutEffect(() => {
@@ -157,8 +157,8 @@ export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
                       .map(
                         (x) =>
                           dataSetsRef.current[x.datasetIndex].data[x.index]
-                            .algorithm
-                      )
+                            .algorithm,
+                      ),
                   );
               },
               callbacks: {

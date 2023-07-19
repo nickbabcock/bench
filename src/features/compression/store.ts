@@ -18,5 +18,5 @@ export const useCompressionUiState = create<CompressionUiState>()(
         }
       },
     },
-  })
+  }),
 );

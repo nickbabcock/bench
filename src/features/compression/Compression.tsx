@@ -42,7 +42,7 @@ type NewFileAction = {
 
 function compressionReducer(
   state: CompressionState,
-  action: CompressionAction
+  action: CompressionAction,
 ): CompressionState {
   switch (action.kind) {
     case "new-file": {
@@ -151,7 +151,7 @@ const useRunCompressionBenchmarks = ({
         });
 
         const decomp = await worker.nativeCompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({
           algorithm: "native",
@@ -170,7 +170,7 @@ const useRunCompressionBenchmarks = ({
       });
 
       const decomp = await worker.lz4Decompress(
-        transfer(comp.out, [comp.out.buffer])
+        transfer(comp.out, [comp.out.buffer]),
       );
       newDecompressionResult({ algorithm: "lz4", elapsedMs: decomp.elapsedMs });
     }
@@ -187,7 +187,7 @@ const useRunCompressionBenchmarks = ({
         });
 
         const decomp = await worker.zstdDecompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({
           algorithm: algorithm,
@@ -215,7 +215,7 @@ const useRunCompressionBenchmarks = ({
         }
 
         const decomp = await worker.minizDecompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({
           algorithm: algorithm,
@@ -247,7 +247,7 @@ const useRunCompressionBenchmarks = ({
         });
 
         const decomp = await worker.brotliDecompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
       }
@@ -265,7 +265,7 @@ const useRunCompressionBenchmarks = ({
         });
 
         const decomp = await worker.pakoDecompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
       }
@@ -283,7 +283,7 @@ const useRunCompressionBenchmarks = ({
         });
 
         const decomp = await worker.fflateDecompress(
-          transfer(comp.out, [comp.out.buffer])
+          transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
       }

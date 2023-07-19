@@ -68,7 +68,7 @@ export async function nativeDecompress(data: Uint8Array) {
 
 export async function pakoCompress(
   data: Uint8Array,
-  level: Pako.DeflateFunctionOptions["level"]
+  level: Pako.DeflateFunctionOptions["level"],
 ) {
   const pako = await import("pako");
   const [out, elapsedMs] = await timeit(() => pako.deflate(data, { level }));
@@ -83,7 +83,7 @@ export async function pakoDecompress(data: Uint8Array) {
 
 export async function fflateCompress(
   data: Uint8Array,
-  level: GzipOptions["level"]
+  level: GzipOptions["level"],
 ) {
   const { gzipSync } = await import("fflate");
   const [out, elapsedMs] = await timeit(() => gzipSync(data, { level }));
