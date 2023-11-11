@@ -1,6 +1,6 @@
 ARG NODE_VERSION=18
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0.204-${NODE_VERSION}-bullseye
-ARG WASM_OPT_VERSION=version_110
+FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0.205-${NODE_VERSION}-bullseye
+ARG WASM_OPT_VERSION=version_116
 
 RUN apt-get update && apt-get install -y \
       clang \
