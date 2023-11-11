@@ -235,6 +235,27 @@ const useRunCompressionBenchmarks = ({
       }
     }
 
+    for (let level of [1, 6, 9]) {
+      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+        const algorithm = `libdeflate-${level}`;
+        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+        const comp = await worker.libdeflateCompress(data, level);
+        newCompressionResult({
+          algorithm: algorithm,
+          elapsedMs: comp.elapsedMs,
+          size: comp.out.length,
+        });
+
+        const decomp = await worker.libdeflateDecompress(
+          transfer(comp.out, [comp.out.buffer]),
+        );
+        newDecompressionResult({
+          algorithm: algorithm,
+          elapsedMs: decomp.elapsedMs,
+        });
+      }
+    }
+
     for (let level of [1, 4, 9]) {
       for (let i = 0; i < iterations && !cancelSignal.current; i++) {
         const algorithm = `brotli-${level}`;

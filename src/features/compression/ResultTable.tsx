@@ -17,6 +17,7 @@ const payloadSizes = {
   fflate: [12.37, 12.37],
   brotli: [137.77, 681.03],
   zune: [19, undefined],
+  libdeflate: [39, 39],
 } as const;
 
 const payloadSizesLookup = new Map(Object.entries(payloadSizes));
@@ -150,7 +151,7 @@ export const ResultTable = ({
             key={row.algorithm}
             aria-selected={actives.has(row.algorithm)}
           >
-            <td className="pl-2">{row.algorithm}</td>
+            <td className="pl-2 hyphens-none whitespace-nowrap">{row.algorithm}</td>
             <td className="text-right">{formatFloat(row.ratio)}</td>
             <td className="text-right">
               {row.payload[0] ? formatFloat(row.payload[0]) : "---"}

@@ -27,6 +27,7 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
     fflate: "#fdb462",
     brotli: "#b3de69",
     zune: "#fccde5",
+    libdeflate: "#d9d9d9",
   };
 
   const colorMap = new Map(Object.entries(colors));

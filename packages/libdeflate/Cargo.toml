@@ -1,0 +1,16 @@
+[package]
+name = "libdeflate"
+version = "0.1.0"
+authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+# flate2 = { version = "1.0.24", default-features = false, features = ["zlib-ng"] }
+libdeflater = { version = "1.19.0", default-features = false, features = ["freestanding"] }
+wasm-bindgen = "0.2.83"
+
+[package.metadata.wasm-pack.profile.release]
+wasm-opt = false

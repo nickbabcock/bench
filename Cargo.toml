@@ -4,6 +4,7 @@ members = [
     "packages/alloc",
     "packages/br-read",
     "packages/br-write",
+    "packages/libdeflate",
     "packages/lz4",
     "packages/miniz",
     "packages/zstd-read",

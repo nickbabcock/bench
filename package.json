@@ -7,7 +7,7 @@
     "deploy": "npm run build:wasm && npm run build:optimize && vercel deploy",
     "build": "next build",
     "build:optimize": "find ./packages/ -ipath '*/pkg/*.wasm' -print0 | xargs -0 -I{} wasm-opt --enable-simd -O2 -o {} {}",
-    "build:wasm": "wasm-pack build -t web packages/alloc && wasm-pack build -t web packages/br-read && wasm-pack build -t web packages/br-write && wasm-pack build -t web packages/lz4 && wasm-pack build -t web packages/miniz && wasm-pack build -t web packages/zstd-read && wasm-pack build -t web packages/zstd-write && wasm-pack build -t web packages/zune",
+    "build:wasm": "wasm-pack build -t web packages/alloc && wasm-pack build -t web packages/br-read && wasm-pack build -t web packages/br-write && wasm-pack build -t web packages/lz4 && wasm-pack build -t web packages/miniz && wasm-pack build -t web packages/zstd-read && wasm-pack build -t web packages/zstd-write && wasm-pack build -t web packages/zune && wasm-pack build -t web packages/libdeflate",
     "format": "npx prettier@latest --write 'src'",
     "start": "next start",
     "lint": "next lint"
