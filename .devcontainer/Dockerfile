@@ -1,5 +1,5 @@
-ARG NODE_VERSION=18
-FROM mcr.microsoft.com/vscode/devcontainers/javascript-node:0.205-${NODE_VERSION}-bullseye
+ARG NODE_VERSION=20
+FROM mcr.microsoft.com/devcontainers/javascript-node:1.0-${NODE_VERSION}-bookworm
 ARG WASM_OPT_VERSION=version_116
 
 RUN apt-get update && apt-get install -y \
