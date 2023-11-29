@@ -54,7 +54,7 @@ const libdeflate = load({
 
 export async function nativeCompress(data: Uint8Array) {
   const [response, elapsedMs] = await timeit(() => {
-    const cs = new (self as any).CompressionStream("gzip");
+    const cs = new CompressionStream("gzip");
     const pipe = new Blob([data]).stream().pipeThrough(cs);
     return new Response(pipe).arrayBuffer();
   });
@@ -64,7 +64,7 @@ export async function nativeCompress(data: Uint8Array) {
 
 export async function nativeDecompress(data: Uint8Array) {
   const [response, elapsedMs] = await timeit(() => {
-    const cs = new (self as any).DecompressionStream("gzip");
+    const cs = new DecompressionStream("gzip");
     const pipe = new Blob([data]).stream().pipeThrough(cs);
     return new Response(pipe).arrayBuffer();
   });
