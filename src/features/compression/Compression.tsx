@@ -150,7 +150,7 @@ const useRunCompressionBenchmarks = ({
           size: comp.out.length,
         });
 
-        const decomp = await worker.nativeCompress(
+        const decomp = await worker.nativeDecompress(
           transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({
