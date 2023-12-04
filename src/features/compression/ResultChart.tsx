@@ -2,9 +2,9 @@ import { formatFloat } from "@/lib/format";
 import { useEffect, useMemo, useRef } from "react";
 import { Chart } from "chart.js/auto";
 import { BenchmarkProfile, CompressionProfileData } from "./types";
-import { useCompressionUiState } from "./store";
 import { shallowEq } from "@/lib/eq";
 import { useIsomorphicLayoutEffect } from "@/hooks";
+import { useCompressionUiState } from "./store";
 
 function groupBy<T, K>(items: T[], fn: (arg0: T) => K): Map<K, T[]> {
   const result: Map<K, T[]> = new Map();

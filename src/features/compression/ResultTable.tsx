@@ -2,7 +2,7 @@ import { formatFloat } from "@/lib/format";
 import clsx from "clsx";
 import { useMemo } from "react";
 import { BenchmarkProfile } from "./types";
-import { useCompressionUiState } from "./store";
+import { useActions, useActives } from "./store";
 
 const formatBytes = (bytes: number) => {
   return `${formatFloat(bytes / 1000 / 1000)} MB`;
@@ -78,12 +78,9 @@ export const ResultTable = ({
   iterations,
 }: ResultTableProps) => {
   const rows = useMemo(() => resultRows(bytes, results), [bytes, results]);
-  const actives = new Set(
-    useCompressionUiState((state) => state.activeAlgorithms),
-  );
-  const { setActiveAlgorithms } = useCompressionUiState(
-    (state) => state.actions,
-  );
+  const activeList = useActives();
+  const actives = useMemo(() => new Set(activeList), [activeList]);
+  const { setActiveAlgorithms } = useActions();
   return (
     <table className="mx-auto w-[800px] table-fixed border-collapse">
       <thead>
@@ -151,7 +148,9 @@ export const ResultTable = ({
             key={row.algorithm}
             aria-selected={actives.has(row.algorithm)}
           >
-            <td className="pl-2 hyphens-none whitespace-nowrap">{row.algorithm}</td>
+            <td className="pl-2 hyphens-none whitespace-nowrap">
+              {row.algorithm}
+            </td>
             <td className="text-right">{formatFloat(row.ratio)}</td>
             <td className="text-right">
               {row.payload[0] ? formatFloat(row.payload[0]) : "---"}

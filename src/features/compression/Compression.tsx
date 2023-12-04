@@ -8,6 +8,7 @@ import { ResultTable } from "./ResultTable";
 import { DocumentIcon } from "@/components/icons";
 import { BenchmarkProfile, CompressionProfileData } from "./types";
 import { useIsomorphicLayoutEffect } from "@/hooks";
+import { useActions, useAlgorithms } from "./store";
 
 type CompressionState =
   | {
@@ -126,6 +127,8 @@ const useRunCompressionBenchmarks = ({
     newDecompressionResult,
   } = useCompressionResults();
 
+  const algorithms = useAlgorithms();
+
   const [isCancelling, setCancelling] = useState(false);
   const cancelSignal = useRef(isCancelling);
   useIsomorphicLayoutEffect(() => {
@@ -140,7 +143,7 @@ const useRunCompressionBenchmarks = ({
 
     newFile({ bytes: data.length, filename: file.name });
 
-    if ("CompressionStream" in window) {
+    if ("CompressionStream" in window && algorithms.native.enabled) {
       for (let i = 0; i < iterations && !cancelSignal.current; i++) {
         newStatus(`Compression Streams: (${i + 1}/${iterations})`);
         const comp = await worker.nativeCompress(data);
@@ -160,153 +163,172 @@ const useRunCompressionBenchmarks = ({
       }
     }
 
-    for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-      newStatus(`lz4: (${i + 1}/${iterations})`);
-      const comp = await worker.lz4Compress(data);
-      newCompressionResult({
-        algorithm: "lz4",
-        elapsedMs: comp.elapsedMs,
-        size: comp.out.length,
-      });
-
-      const decomp = await worker.lz4Decompress(
-        transfer(comp.out, [comp.out.buffer]),
-      );
-      newDecompressionResult({ algorithm: "lz4", elapsedMs: decomp.elapsedMs });
-    }
-
-    for (let level of [1, 3, 5, 7]) {
+    if (algorithms.lz4.enabled) {
       for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `zstd-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.zstdCompress(data, level);
+        newStatus(`lz4: (${i + 1}/${iterations})`);
+        const comp = await worker.lz4Compress(data);
         newCompressionResult({
-          algorithm: algorithm,
+          algorithm: "lz4",
           elapsedMs: comp.elapsedMs,
           size: comp.out.length,
         });
 
-        const decomp = await worker.zstdDecompress(
+        const decomp = await worker.lz4Decompress(
           transfer(comp.out, [comp.out.buffer]),
         );
         newDecompressionResult({
-          algorithm: algorithm,
+          algorithm: "lz4",
           elapsedMs: decomp.elapsedMs,
         });
+      }
+    }
+
+    if (algorithms.zstd.enabled) {
+      for (let level of [1, 3, 5, 7]) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `zstd-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.zstdCompress(data, level);
+          newCompressionResult({
+            algorithm: algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
+
+          const decomp = await worker.zstdDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({
+            algorithm: algorithm,
+            elapsedMs: decomp.elapsedMs,
+          });
+        }
       }
     }
 
     let deflatePayload: Uint8Array | undefined = undefined;
 
-    // Best Speed, Default, and Best Compression
-    for (let level of [1, 6, 9]) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `miniz-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.minizCompress(data, level);
-        newCompressionResult({
-          algorithm: algorithm,
-          elapsedMs: comp.elapsedMs,
-          size: comp.out.length,
-        });
+    if (algorithms.miniz.enabled) {
+      // Best Speed, Default, and Best Compression
+      for (let level of [1, 6, 9]) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `miniz-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.minizCompress(data, level);
+          newCompressionResult({
+            algorithm: algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
 
-        if (level === 6 && i === 0) {
-          deflatePayload = new Uint8Array(comp.out);
+          if (level === 6 && i === 0 && deflatePayload === undefined) {
+            deflatePayload = new Uint8Array(comp.out);
+          }
+
+          const decomp = await worker.minizDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({
+            algorithm: algorithm,
+            elapsedMs: decomp.elapsedMs,
+          });
         }
-
-        const decomp = await worker.minizDecompress(
-          transfer(comp.out, [comp.out.buffer]),
-        );
-        newDecompressionResult({
-          algorithm: algorithm,
-          elapsedMs: decomp.elapsedMs,
-        });
       }
     }
 
-    if (deflatePayload) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        newStatus(`zune deflate: (${i + 1}/${iterations})`);
-        const comp = await worker.zuneDecompress(deflatePayload);
-        newDecompressionResult({
-          algorithm: "zune",
-          elapsedMs: comp.elapsedMs,
-        });
+    if (algorithms.zune.enabled) {
+      if (deflatePayload) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          newStatus(`zune deflate: (${i + 1}/${iterations})`);
+          const comp = await worker.zuneDecompress(deflatePayload);
+          newDecompressionResult({
+            algorithm: "zune",
+            elapsedMs: comp.elapsedMs,
+          });
+        }
       }
     }
 
-    for (let level of [1, 6, 9]) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `libdeflate-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.libdeflateCompress(data, level);
-        newCompressionResult({
-          algorithm: algorithm,
-          elapsedMs: comp.elapsedMs,
-          size: comp.out.length,
-        });
+    if (algorithms.libdeflate.enabled) {
+      for (let level of [1, 6, 9]) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `libdeflate-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.libdeflateCompress(data, level);
+          newCompressionResult({
+            algorithm: algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
 
-        const decomp = await worker.libdeflateDecompress(
-          transfer(comp.out, [comp.out.buffer]),
-        );
-        newDecompressionResult({
-          algorithm: algorithm,
-          elapsedMs: decomp.elapsedMs,
-        });
+          const decomp = await worker.libdeflateDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({
+            algorithm: algorithm,
+            elapsedMs: decomp.elapsedMs,
+          });
+        }
       }
     }
 
-    for (let level of [1, 4, 9]) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `brotli-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.brotliCompress(data, level);
-        newCompressionResult({
-          algorithm,
-          elapsedMs: comp.elapsedMs,
-          size: comp.out.length,
-        });
+    if (algorithms.brotli.enabled) {
+      for (let level of [1, 4, 9]) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `brotli-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.brotliCompress(data, level);
+          newCompressionResult({
+            algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
 
-        const decomp = await worker.brotliDecompress(
-          transfer(comp.out, [comp.out.buffer]),
-        );
-        newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+          const decomp = await worker.brotliDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+        }
       }
     }
 
-    for (let level of [1, 6, 9] as const) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `pako-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.pakoCompress(data, level);
-        newCompressionResult({
-          algorithm,
-          elapsedMs: comp.elapsedMs,
-          size: comp.out.length,
-        });
+    if (algorithms.pako.enabled) {
+      for (let level of [1, 6, 9] as const) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `pako-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.pakoCompress(data, level);
+          newCompressionResult({
+            algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
 
-        const decomp = await worker.pakoDecompress(
-          transfer(comp.out, [comp.out.buffer]),
-        );
-        newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+          const decomp = await worker.pakoDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+        }
       }
     }
 
-    for (let level of [1, 6, 9] as const) {
-      for (let i = 0; i < iterations && !cancelSignal.current; i++) {
-        const algorithm = `fflate-${level}`;
-        newStatus(`${algorithm}: (${i + 1}/${iterations})`);
-        const comp = await worker.fflateCompress(data, level);
-        newCompressionResult({
-          algorithm,
-          elapsedMs: comp.elapsedMs,
-          size: comp.out.length,
-        });
+    if (algorithms.fflate.enabled) {
+      for (let level of [1, 6, 9] as const) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `fflate-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.fflateCompress(data, level);
+          newCompressionResult({
+            algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
 
-        const decomp = await worker.fflateDecompress(
-          transfer(comp.out, [comp.out.buffer]),
-        );
-        newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+          const decomp = await worker.fflateDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({ algorithm, elapsedMs: decomp.elapsedMs });
+        }
       }
     }
 
@@ -329,9 +351,130 @@ export const Compression = () => {
   const iterations = 3;
   const { state, isCancelling, setCancelling, run } =
     useRunCompressionBenchmarks({ iterations: 3 });
+  const algorithms = useAlgorithms();
+  const { setAlgorithmEnabled } = useActions();
 
   return (
     <>
+      <div className="self-center mt-2 flex gap-4 flex-wrap">
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable lz4"
+              checked={algorithms.native.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("native", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">Native</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable lz4"
+              checked={algorithms.lz4.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("lz4", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">lz4</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable zstd"
+              checked={algorithms.zstd.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("zstd", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">zstd</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable miniz"
+              checked={algorithms.miniz.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("miniz", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">miniz</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable pako"
+              checked={algorithms.pako.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("pako", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">pako</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable fflate"
+              checked={algorithms.fflate.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("fflate", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">fflate</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable brotli"
+              checked={algorithms.brotli.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("brotli", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">brotli</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable zune"
+              checked={algorithms.zune.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("zune", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">zune</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable libdeflate"
+              checked={algorithms.libdeflate.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("libdeflate", e.currentTarget.checked)
+              }
+            />
+            <h3 className="text-lg font-semibold inline-block">libdeflate</h3>
+          </label>
+        </div>
+      </div>
       <FileInput onChange={run}>
         <DocumentIcon className="w-10" />
         <p>

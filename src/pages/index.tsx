@@ -18,7 +18,7 @@ const Home: NextPage = () => {
             </Link>
           </div>
         </div>
-        <div>
+        <div className="flex flex-col">
           <div className="mx-auto max-w-prose">
             <h2 className="mb-2 text-lg font-bold">Compression</h2>
             <p className="text-lg">
