@@ -12,6 +12,10 @@
     "start": "next start",
     "lint": "next lint"
   },
+  "prettier": {
+    "plugins": ["prettier-plugin-tailwindcss"],
+    "tailwindFunctions": ["clsx"]
+  },
   "dependencies": {
     "chart.js": "4.4.3",
     "clsx": "2.1.1",

@@ -356,7 +356,7 @@ export const Compression = () => {
 
   return (
     <>
-      <div className="self-center mt-2 flex gap-4 flex-wrap">
+      <div className="mt-2 flex flex-wrap gap-4 self-center">
         <div>
           <label className="flex gap-1">
             <input
@@ -367,7 +367,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("native", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">Native</h3>
+            <h3 className="inline-block text-lg font-semibold">Native</h3>
           </label>
         </div>
         <div>
@@ -380,7 +380,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("lz4", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">lz4</h3>
+            <h3 className="inline-block text-lg font-semibold">lz4</h3>
           </label>
         </div>
         <div>
@@ -393,7 +393,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("zstd", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">zstd</h3>
+            <h3 className="inline-block text-lg font-semibold">zstd</h3>
           </label>
         </div>
         <div>
@@ -406,7 +406,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("miniz", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">miniz</h3>
+            <h3 className="inline-block text-lg font-semibold">miniz</h3>
           </label>
         </div>
         <div>
@@ -419,7 +419,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("pako", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">pako</h3>
+            <h3 className="inline-block text-lg font-semibold">pako</h3>
           </label>
         </div>
         <div>
@@ -432,7 +432,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("fflate", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">fflate</h3>
+            <h3 className="inline-block text-lg font-semibold">fflate</h3>
           </label>
         </div>
         <div>
@@ -445,7 +445,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("brotli", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">brotli</h3>
+            <h3 className="inline-block text-lg font-semibold">brotli</h3>
           </label>
         </div>
         <div>
@@ -458,7 +458,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("zune", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">zune</h3>
+            <h3 className="inline-block text-lg font-semibold">zune</h3>
           </label>
         </div>
         <div>
@@ -471,7 +471,7 @@ export const Compression = () => {
                 setAlgorithmEnabled("libdeflate", e.currentTarget.checked)
               }
             />
-            <h3 className="text-lg font-semibold inline-block">libdeflate</h3>
+            <h3 className="inline-block text-lg font-semibold">libdeflate</h3>
           </label>
         </div>
       </div>

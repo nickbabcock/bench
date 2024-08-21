@@ -148,7 +148,7 @@ export const ResultTable = ({
             key={row.algorithm}
             aria-selected={actives.has(row.algorithm)}
           >
-            <td className="pl-2 hyphens-none whitespace-nowrap">
+            <td className="hyphens-none whitespace-nowrap pl-2">
               {row.algorithm}
             </td>
             <td className="text-right">{formatFloat(row.ratio)}</td>
