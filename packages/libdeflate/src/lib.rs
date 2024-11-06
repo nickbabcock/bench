@@ -10,7 +10,7 @@ pub fn decompress(data: &[u8]) -> Vec<u8> {
     let mut decompressor = Decompressor::new();
     let mut out_buf = unsafe { Vec::with_capacity(ORIGINAL_SIZE) };
     unsafe { out_buf.set_len(ORIGINAL_SIZE) }
-    decompressor.gzip_decompress(&data, &mut out_buf).unwrap();
+    decompressor.gzip_decompress(data, &mut out_buf).unwrap();
     out_buf
 }
 
@@ -20,10 +20,9 @@ pub fn compress(data: &[u8], level: u8) -> Vec<u8> {
 
     let mut compressor = Compressor::new(CompressionLvl::new(level as i32).unwrap());
     let max_sz = compressor.gzip_compress_bound(data.len());
-    let mut compressed_data = Vec::new();
-    compressed_data.resize(max_sz, 0);
+    let mut compressed_data = vec![0; max_sz];
     let actual_sz = compressor
-        .gzip_compress(&data, &mut compressed_data)
+        .gzip_compress(data, &mut compressed_data)
         .unwrap();
     compressed_data.resize(actual_sz, 0);
     compressed_data
