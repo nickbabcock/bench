@@ -9,8 +9,8 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 # flate2 = { version = "1.0.24", default-features = false, features = ["zlib-ng"] }
-libdeflater = { version = "1.19.0", default-features = false, features = ["freestanding"] }
-wasm-bindgen = "0.2.83"
+libdeflater = { version = "1.22.0", default-features = false, features = ["freestanding"] }
+wasm-bindgen = "0.2.95"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false

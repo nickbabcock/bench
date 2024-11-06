@@ -8,8 +8,8 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-brotli-decompressor = "4.0.0"
-wasm-bindgen = "0.2.83"
+brotli-decompressor = "4.0.1"
+wasm-bindgen = "0.2.95"
 
 [package.metadata.wasm-pack.profile.release]
 wasm-opt = false
