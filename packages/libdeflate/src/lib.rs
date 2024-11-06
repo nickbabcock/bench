@@ -1,7 +1,7 @@
 // use std::io::Read;
 // use flate2::Compression;
+use libdeflater::{CompressionLvl, Compressor, Decompressor};
 use wasm_bindgen::prelude::*;
-use libdeflater::{Compressor, CompressionLvl, Decompressor};
 
 static mut ORIGINAL_SIZE: usize = 0;
 
@@ -22,7 +22,9 @@ pub fn compress(data: &[u8], level: u8) -> Vec<u8> {
     let max_sz = compressor.gzip_compress_bound(data.len());
     let mut compressed_data = Vec::new();
     compressed_data.resize(max_sz, 0);
-    let actual_sz = compressor.gzip_compress(&data, &mut compressed_data).unwrap();
+    let actual_sz = compressor
+        .gzip_compress(&data, &mut compressed_data)
+        .unwrap();
     compressed_data.resize(actual_sz, 0);
     compressed_data
 }
