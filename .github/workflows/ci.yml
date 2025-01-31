@@ -22,7 +22,15 @@ jobs:
     - run: npm run lint
 
   devcontainer:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+        - build: ubuntu
+          os: ubuntu-latest
+        - build: macos
+          os: macos-latest
     steps:
     - uses: actions/checkout@v4
     - run: npm install -g @devcontainers/cli
