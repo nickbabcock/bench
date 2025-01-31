@@ -7,6 +7,7 @@ members = [
     "packages/libdeflate",
     "packages/lz4",
     "packages/miniz",
+    "packages/zlib-rs",
     "packages/zstd-read",
     "packages/zstd-write",
     "packages/zune",

@@ -17,7 +17,7 @@ function groupBy<T, K>(items: T[], fn: (arg0: T) => K): Map<K, T[]> {
 }
 
 const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
-  // https://colorbrewer2.org/#type=qualitative&scheme=Set3&n=7
+  // https://colorbrewer2.org/#type=qualitative&scheme=Set3&n=10
   const colors = {
     native: "#8dd3c7",
     lz4: "#ffffb3",
@@ -28,6 +28,7 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
     brotli: "#b3de69",
     zune: "#fccde5",
     libdeflate: "#d9d9d9",
+    zlibrs: "#bc80bd",
   };
 
   const colorMap = new Map(Object.entries(colors));

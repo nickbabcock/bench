@@ -272,6 +272,29 @@ const useRunCompressionBenchmarks = ({
       }
     }
 
+    if (algorithms.zlibrs.enabled) {
+      for (let level of [1, 6, 9]) {
+        for (let i = 0; i < iterations && !cancelSignal.current; i++) {
+          const algorithm = `zlibrs-${level}`;
+          newStatus(`${algorithm}: (${i + 1}/${iterations})`);
+          const comp = await worker.zlibrsCompress(data, level);
+          newCompressionResult({
+            algorithm: algorithm,
+            elapsedMs: comp.elapsedMs,
+            size: comp.out.length,
+          });
+
+          const decomp = await worker.zlibrsDecompress(
+            transfer(comp.out, [comp.out.buffer]),
+          );
+          newDecompressionResult({
+            algorithm: algorithm,
+            elapsedMs: decomp.elapsedMs,
+          });
+        }
+      }
+    }
+
     if (algorithms.brotli.enabled) {
       for (let level of [1, 4, 9]) {
         for (let i = 0; i < iterations && !cancelSignal.current; i++) {
@@ -472,6 +495,19 @@ export const Compression = () => {
               }
             />
             <h3 className="inline-block text-lg font-semibold">libdeflate</h3>
+          </label>
+        </div>
+        <div>
+          <label className="flex gap-1">
+            <input
+              type="checkbox"
+              aria-label="Enable zlibrs"
+              checked={algorithms.zlibrs.enabled}
+              onChange={(e) =>
+                setAlgorithmEnabled("zlibrs", e.currentTarget.checked)
+              }
+            />
+            <h3 className="inline-block text-lg font-semibold">zlibrs</h3>
           </label>
         </div>
       </div>

@@ -18,6 +18,7 @@ const payloadSizes = {
   brotli: [137.77, 681.03],
   zune: [19, undefined],
   libdeflate: [39, 39],
+  zlibrs: [75, 75],
 } as const;
 
 const payloadSizesLookup = new Map(Object.entries(payloadSizes));
