@@ -1,6 +1,6 @@
 ARG NODE_VERSION=20
 FROM mcr.microsoft.com/devcontainers/javascript-node:1.0-${NODE_VERSION}-bookworm
-ARG WASM_OPT_VERSION=version_116
+ARG WASM_OPT_VERSION=version_120_b
 
 RUN apt-get update && apt-get install -y \
       clang \
