@@ -7,6 +7,7 @@ import zstdWritePath from "../../../../packages/zstd-write/pkg/zstd_write_bg.was
 import lz4Path from "../../../../packages/lz4/pkg/lz4_bg.wasm";
 import zunePath from "../../../../packages/zune/pkg/zune_bg.wasm";
 import libdeflatePath from "../../../../packages/libdeflate/pkg/libdeflate_bg.wasm";
+import zlibrsPath from "../../../../packages/zlib-rs/pkg/zlib_rs_bg.wasm";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
 import type Pako from "pako";
@@ -50,6 +51,11 @@ const zune = load({
 const libdeflate = load({
   js: () => import("../../../../packages/libdeflate/pkg/libdeflate"),
   wasm: libdeflatePath,
+});
+
+const zlibrs = load({
+  js: () => import("../../../../packages/zlib-rs/pkg/zlib_rs"),
+  wasm: zlibrsPath,
 });
 
 export async function nativeCompress(data: Uint8Array) {
@@ -177,5 +183,17 @@ export async function libdeflateCompress(data: Uint8Array, level: number) {
 export async function libdeflateDecompress(data: Uint8Array) {
   const mod = await libdeflate();
   const [out, elapsedMs] = await timeit(() => mod.decompress(data));
+  return transfer({ out, elapsedMs }, [out.buffer]);
+}
+
+export async function zlibrsCompress(data: Uint8Array, level: number) {
+  const mod = await zlibrs();
+  const [out, elapsedMs] = await timeit(() => mod.compress_bench(data, level));
+  return transfer({ out, elapsedMs }, [out.buffer]);
+}
+
+export async function zlibrsDecompress(data: Uint8Array) {
+  const mod = await zlibrs();
+  const [out, elapsedMs] = await timeit(() => mod.decompress_bench(data));
   return transfer({ out, elapsedMs }, [out.buffer]);
 }

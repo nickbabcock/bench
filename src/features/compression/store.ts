@@ -16,6 +16,7 @@ interface CompressionUiState {
     brotli: Algorithm;
     zune: Algorithm;
     libdeflate: Algorithm;
+    zlibrs: Algorithm;
   };
   activeAlgorithms: string[];
   actions: {
@@ -39,6 +40,7 @@ export const useCompressionUiState = create<CompressionUiState>()(
       brotli: { enabled: true },
       zune: { enabled: true },
       libdeflate: { enabled: true },
+      zlibrs: { enabled: true },
     },
     activeAlgorithms: [],
     actions: {
