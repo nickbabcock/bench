@@ -16,3 +16,6 @@ members = [
 [profile.release]
 lto = true
 codegen-units = 1
+
+[workspace.dependencies]
+wasm-bindgen = { version = "0.2.95" }
