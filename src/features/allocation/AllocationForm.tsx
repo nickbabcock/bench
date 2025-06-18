@@ -35,7 +35,7 @@ export const AllocationForm: React.FC<{}> = () => {
         <label htmlFor={inputId}>Text:</label>
         <input
           id={inputId}
-          className="h-10 rounded border border-slate-500 px-4 text-lg"
+          className="h-10 rounded-sm border border-slate-500 px-4 text-lg"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
@@ -43,7 +43,7 @@ export const AllocationForm: React.FC<{}> = () => {
         <label htmlFor={iterationsId}>Iterations:</label>
         <input
           id={iterationsId}
-          className="h-10 rounded border border-slate-500 px-4 text-lg"
+          className="h-10 rounded-sm border border-slate-500 px-4 text-lg"
           value={iterations}
           onChange={(e) => setIterations(+e.target.value)}
         />
