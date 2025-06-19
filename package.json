@@ -13,8 +13,12 @@
     "lint": "next lint"
   },
   "prettier": {
-    "plugins": ["prettier-plugin-tailwindcss"],
-    "tailwindFunctions": ["clsx"]
+    "plugins": [
+      "prettier-plugin-tailwindcss"
+    ],
+    "tailwindFunctions": [
+      "clsx"
+    ]
   },
   "dependencies": {
     "chart.js": "4.4.7",
@@ -28,14 +32,15 @@
     "zustand": "5.0.2"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "4.1.10",
     "@types/node": "22.9.0",
     "@types/pako": "2.0.3",
     "@types/react": "18.3.12",
     "eslint": "8.57.0",
     "eslint-config-next": "15.2.3",
     "prettier": "3.4.2",
-    "prettier-plugin-tailwindcss": "0.6.9",
-    "tailwindcss": "3.4.17",
+    "prettier-plugin-tailwindcss": "0.6.12",
+    "tailwindcss": "4.1.10",
     "typescript": "5.6.3"
   }
 }
