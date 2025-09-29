@@ -64,7 +64,7 @@ export const AllocationForm: React.FC<{}> = () => {
       </Button>
 
       {results.length > 0 && (
-        <div className="space-y-4">
+        <div className="max-w-md space-y-4">
           <div className="grid grid-cols-3 gap-4 border-b pb-2 font-semibold">
             <div>Run</div>
             <div>Global Alloc</div>

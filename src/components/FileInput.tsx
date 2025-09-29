@@ -29,10 +29,7 @@ export const FileInput = ({
   };
 
   return (
-    <div
-      className="mx-auto my-5 w-full max-w-prose flex-col space-y-1"
-      ref={dropAreaRef}
-    >
+    <div className="w-full" ref={dropAreaRef}>
       <input
         id={inputId}
         type="file"
@@ -43,10 +40,10 @@ export const FileInput = ({
       <label
         htmlFor={inputId}
         className={clsx(
-          "flex cursor-pointer items-center gap-1 rounded-md border-2 border-dashed border-slate-600 p-4 peer-focus:border-indigo-500 peer-focus:ring-indigo-500 peer-disabled:cursor-not-allowed peer-disabled:saturate-0 hover:bg-slate-300 dark:hover:bg-slate-800",
+          "flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed transition-colors peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:saturate-0",
           !isFileHovering
-            ? "bg-slate-200 dark:bg-slate-700"
-            : "bg-slate-300 dark:bg-slate-800",
+            ? "border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
+            : "border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/20",
         )}
       >
         {children}
