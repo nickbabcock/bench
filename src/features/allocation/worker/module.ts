@@ -1,4 +1,4 @@
-import wasmPath from "../../../../packages/alloc/pkg/alloc_bg.wasm";
+import wasmPath from "@/wasm/alloc_bg.wasm";
 import { timeit } from "@/lib/timeit";
 import { load } from "@/lib/wasm";
 
@@ -7,7 +7,7 @@ export type BenchmarkResult = {
 };
 
 const alloc = load({
-  js: () => import("../../../../packages/alloc/pkg/alloc"),
+  js: () => import("@/wasm/alloc"),
   wasm: wasmPath,
 });
 

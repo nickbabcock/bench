@@ -10,4 +10,10 @@ Due to vercel lacking clang (and xz to extract a prebuilt clang), there is a man
 
 ## Contributing
 
-Interested in contributing? For convenience there is a Dev Container ([see tutorial](https://code.visualstudio.com/docs/devcontainers/containers#_installation)), otherwise you'll want Node, Rust, wasm-pack, and clang installed.
+For convenience there is a Dev Container ([see tutorial](https://code.visualstudio.com/docs/devcontainers/containers#_installation)), otherwise install [mise](https://mise.jdx.dev/) to setup the dev environment:
+
+```bash
+mise install
+mise run build:wasm
+mise run dev
+```
