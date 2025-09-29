@@ -13,12 +13,12 @@ jobs:
     runs-on: 'ubuntu-latest'
     steps:
     - uses: actions/checkout@v4
-    - name: Install wasm-pack
-      run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+    - uses: jdx/mise-action@v2
+    - run: rustup target add wasm32-unknown-unknown
     - name: Npm Install
       run: npm ci
     - name: Build app
-      run: npm run build:wasm && npm run build
+      run: mise run build
     - run: npm run lint
 
   devcontainer:

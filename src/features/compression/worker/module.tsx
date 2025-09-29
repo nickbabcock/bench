@@ -1,60 +1,60 @@
 import { timeit } from "@/lib/timeit";
-import brWritePath from "../../../../packages/br-write/pkg/br_write_bg.wasm";
-import brReadPath from "../../../../packages/br-read/pkg/br_read_bg.wasm";
-import minizPath from "../../../../packages/miniz/pkg/miniz_bg.wasm";
-import zstdReadPath from "../../../../packages/zstd-read/pkg/zstd_read_bg.wasm";
-import zstdWritePath from "../../../../packages/zstd-write/pkg/zstd_write_bg.wasm";
-import lz4Path from "../../../../packages/lz4/pkg/lz4_bg.wasm";
-import zunePath from "../../../../packages/zune/pkg/zune_bg.wasm";
-import libdeflatePath from "../../../../packages/libdeflate/pkg/libdeflate_bg.wasm";
-import zlibrsPath from "../../../../packages/zlib-rs/pkg/zlib_rs_bg.wasm";
+import brWritePath from "@/wasm/br_write_bg.wasm";
+import brReadPath from "@/wasm/br_read_bg.wasm";
+import minizPath from "@/wasm/miniz_bg.wasm";
+import zstdReadPath from "@/wasm/zstd_read_bg.wasm";
+import zstdWritePath from "@/wasm/zstd_write_bg.wasm";
+import lz4Path from "@/wasm/lz4_bg.wasm";
+import zunePath from "@/wasm/zune_bg.wasm";
+import libdeflatePath from "@/wasm/libdeflate_bg.wasm";
+import zlibrsPath from "@/wasm/zlib_rs_bg.wasm";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
 import type Pako from "pako";
 import { load } from "@/lib/wasm";
 
 const miniz = load({
-  js: () => import("../../../../packages/miniz/pkg/miniz"),
+  js: () => import("@/wasm/miniz"),
   wasm: minizPath,
 });
 
 const zstdRead = load({
-  js: () => import("../../../../packages/zstd-read/pkg/zstd_read"),
+  js: () => import("@/wasm/zstd_read"),
   wasm: zstdReadPath,
 });
 
 const zstdWrite = load({
-  js: () => import("../../../../packages/zstd-write/pkg/zstd_write"),
+  js: () => import("@/wasm/zstd_write"),
   wasm: zstdWritePath,
 });
 
 const lz4 = load({
-  js: () => import("../../../../packages/lz4/pkg/lz4"),
+  js: () => import("@/wasm/lz4"),
   wasm: lz4Path,
 });
 
 const brRead = load({
-  js: () => import("../../../../packages/br-read/pkg/br_read"),
+  js: () => import("@/wasm/br_read"),
   wasm: brReadPath,
 });
 
 const brWrite = load({
-  js: () => import("../../../../packages/br-write/pkg/br_write"),
+  js: () => import("@/wasm/br_write"),
   wasm: brWritePath,
 });
 
 const zune = load({
-  js: () => import("../../../../packages/zune/pkg/zune"),
+  js: () => import("@/wasm/zune"),
   wasm: zunePath,
 });
 
 const libdeflate = load({
-  js: () => import("../../../../packages/libdeflate/pkg/libdeflate"),
+  js: () => import("@/wasm/libdeflate"),
   wasm: libdeflatePath,
 });
 
 const zlibrs = load({
-  js: () => import("../../../../packages/zlib-rs/pkg/zlib_rs"),
+  js: () => import("@/wasm/zlib_rs"),
   wasm: zlibrsPath,
 });
 

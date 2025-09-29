@@ -21,11 +21,13 @@
         "bradlc.vscode-tailwindcss",
         "dbaeumer.vscode-eslint",
         "esbenp.prettier-vscode",
+        "hverlin.mise-vscode",
         "rust-lang.rust-analyzer"
       ]
     }
   },
 
-  "postStartCommand": "npm ci",
-  "remoteUser": "node"
+  "postCreateCommand": "mise trust && mise install --verbose --jobs 1",
+  "postStartCommand": "mise install --verbose --jobs 1 && npm ci",
+  "remoteUser": "vscode"
 }
