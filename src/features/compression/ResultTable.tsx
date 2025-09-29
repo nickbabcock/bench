@@ -95,13 +95,13 @@ export const ResultTable = ({
         </tr>
         <tr>
           <th
-            className="border-b p-4 pb-3 pl-4 pt-0 text-left text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            className="border-b p-4 pt-0 pb-3 pl-4 text-left text-slate-600 dark:border-slate-600 dark:text-slate-200"
             rowSpan={2}
           >
             Name
           </th>
           <th
-            className="border-b p-4 pb-3 pl-4 pt-0 text-slate-600 dark:border-slate-600 dark:text-slate-200"
+            className="border-b p-4 pt-0 pb-3 pl-4 text-slate-600 dark:border-slate-600 dark:text-slate-200"
             rowSpan={2}
           >
             Ratio
@@ -117,16 +117,16 @@ export const ResultTable = ({
           </th>
         </tr>
         <tr>
-          <th className="border-b p-4 pb-3 pl-4 pt-0 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
+          <th className="border-b p-4 pt-0 pb-3 pl-4 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
             Read
           </th>
-          <th className="border-b p-4 pb-3 pl-4 pt-0 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
+          <th className="border-b p-4 pt-0 pb-3 pl-4 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200">
             Write
           </th>
           {[...Array(iterations)].map((_, i) => (
             <th
               key={`compression-${i}`}
-              className="border-b p-4 pb-3 pl-4 pt-0 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
+              className="border-b p-4 pt-0 pb-3 pl-4 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
             >
               {i + 1}
             </th>
@@ -134,7 +134,7 @@ export const ResultTable = ({
           {[...Array(iterations)].map((_, i) => (
             <th
               key={`decompression-${i}`}
-              className="border-b p-4 pb-3 pl-4 pt-0 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
+              className="border-b p-4 pt-0 pb-3 pl-4 text-right text-slate-600 dark:border-slate-600 dark:text-slate-200"
             >
               {i + 1}
             </th>
@@ -149,7 +149,7 @@ export const ResultTable = ({
             key={row.algorithm}
             aria-selected={actives.has(row.algorithm)}
           >
-            <td className="hyphens-none whitespace-nowrap pl-2">
+            <td className="pl-2 hyphens-none whitespace-nowrap">
               {row.algorithm}
             </td>
             <td className="text-right">{formatFloat(row.ratio)}</td>

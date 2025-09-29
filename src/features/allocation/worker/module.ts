@@ -20,3 +20,15 @@ export async function allocation(
 
   return { elapsedMs };
 }
+
+export async function bumpAllocation(
+  corpus: string,
+  iterations: number,
+): Promise<BenchmarkResult> {
+  const mod = await alloc();
+  const [_, elapsedMs] = await timeit(() =>
+    mod.bump_allocation(corpus, iterations),
+  );
+
+  return { elapsedMs };
+}

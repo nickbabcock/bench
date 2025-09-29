@@ -49,9 +49,10 @@ const Home: NextPage = () => {
           <div className="mx-auto max-w-prose">
             <h2 className="mb-2 text-lg font-bold">Allocation</h2>
             <p className="text-lg">
-              The allocation benchmark measures how long it takes to allocate a
-              given number of vectors with 5 strings of input. Stresses the
-              malloc implementation in browsers and dlmalloc in Rust.
+              The allocation benchmark compares standard allocation vs bump
+              allocation by measuring how long it takes to allocate a given
+              number of vectors with 5 strings of input. Tests malloc
+              implementation in browsers and dlmalloc vs bumpalo in Rust.
             </p>
             <Allocation />
           </div>
