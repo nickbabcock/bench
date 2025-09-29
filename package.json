@@ -4,7 +4,6 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "deploy": "npm run build:wasm && npm run build:optimize && vercel deploy",
     "build": "next build",
     "format": "npx prettier@latest --write 'src'",
     "start": "next start",
