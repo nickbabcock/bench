@@ -98,6 +98,7 @@ type ResultChartProps = {
 export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | undefined>(undefined);
+  const containerRef = useRef<HTMLDivElement>(null);
   const actives = useCompressionUiState((state) => state.activeAlgorithms);
 
   const datasets = useMemo(
@@ -131,6 +132,11 @@ export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
         },
         options: {
           responsive: true,
+          maintainAspectRatio: false,
+          interaction: {
+            intersect: false,
+            mode: "point",
+          },
           scales: {
             x: {
               title: {
@@ -232,5 +238,9 @@ export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
     chart.update();
   }, [actives]);
 
-  return <canvas ref={canvasRef}></canvas>;
+  return (
+    <div ref={containerRef} className="relative h-96 w-full">
+      <canvas ref={canvasRef}></canvas>
+    </div>
+  );
 };

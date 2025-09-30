@@ -7,13 +7,14 @@ interface RequiredAlt {
 // https://primer.style/octicons/mark-github-16
 export const GithubIcon = ({
   alt,
+  className,
   ...props
 }: SVGProps<SVGSVGElement> & RequiredAlt) => {
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 16 16"
-      className="dark:fill-white"
+      className={`fill-gray-700 dark:fill-gray-200 ${className || ""}`}
       {...props}
     >
       <title>{alt}</title>

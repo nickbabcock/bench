@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/Button";
 import { releaseProxy, transfer, wrap } from "comlink";
 import { useReducer, useRef, useState } from "react";
@@ -8,7 +10,9 @@ import { ResultTable } from "./ResultTable";
 import { DocumentIcon } from "@/components/icons";
 import { BenchmarkProfile, CompressionProfileData } from "./types";
 import { useIsomorphicLayoutEffect } from "@/hooks";
-import { useActions, useAlgorithms } from "./store";
+import { useAlgorithms } from "./store";
+import { AlgorithmSelector } from "./AlgorithmSelector";
+import { ResultsExport } from "./ResultsExport";
 
 type CompressionState =
   | {
@@ -373,178 +377,89 @@ const useRunCompressionBenchmarks = ({
 export const Compression = () => {
   const iterations = 3;
   const { state, isCancelling, setCancelling, run } =
-    useRunCompressionBenchmarks({ iterations: 3 });
-  const algorithms = useAlgorithms();
-  const { setAlgorithmEnabled } = useActions();
+    useRunCompressionBenchmarks({ iterations });
 
   return (
-    <>
-      <div className="mt-2 flex flex-wrap gap-4 self-center">
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable lz4"
-              checked={algorithms.native.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("native", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">Native</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable lz4"
-              checked={algorithms.lz4.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("lz4", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">lz4</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable zstd"
-              checked={algorithms.zstd.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("zstd", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">zstd</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable miniz"
-              checked={algorithms.miniz.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("miniz", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">miniz</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable pako"
-              checked={algorithms.pako.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("pako", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">pako</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable fflate"
-              checked={algorithms.fflate.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("fflate", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">fflate</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable brotli"
-              checked={algorithms.brotli.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("brotli", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">brotli</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable zune"
-              checked={algorithms.zune.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("zune", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">zune</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable libdeflate"
-              checked={algorithms.libdeflate.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("libdeflate", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">libdeflate</h3>
-          </label>
-        </div>
-        <div>
-          <label className="flex gap-1">
-            <input
-              type="checkbox"
-              aria-label="Enable zlibrs"
-              checked={algorithms.zlibrs.enabled}
-              onChange={(e) =>
-                setAlgorithmEnabled("zlibrs", e.currentTarget.checked)
-              }
-            />
-            <h3 className="inline-block text-lg font-semibold">zlibrs</h3>
-          </label>
-        </div>
+    <div className="space-y-8">
+      <div>
+        <AlgorithmSelector />
       </div>
-      <FileInput onChange={run}>
-        <DocumentIcon className="w-10" />
-        <p>
-          Drag and drop or{" "}
-          <span className="font-bold text-sky-700 dark:text-sky-400">
-            browse for a file
-          </span>{" "}
-          to run compression benchmarks
-        </p>
-      </FileInput>
-      {state.kind === "running" ? (
-        <div className="mx-auto flex max-w-prose">
-          <p className="grow text-xl">Benchmarking {state.status}</p>
-          <div>
-            <Button
-              className="w-32 text-xl"
-              disabled={isCancelling}
-              onClick={() => setCancelling(true)}
-            >
-              {isCancelling ? "Cancelling ..." : "Cancel"}
-            </Button>
+
+      {/* File Input */}
+      <div className="mx-auto max-w-2xl">
+        <FileInput onChange={run}>
+          <div className="py-12 text-center">
+            <DocumentIcon
+              className="mx-auto mb-4 h-16 w-16 text-gray-400"
+              aria-hidden="true"
+            />
+            <h3 className="mb-2 text-lg font-medium text-gray-900 dark:text-white">
+              Select a file to benchmark
+            </h3>
+            <p className="mb-4 text-gray-600 dark:text-gray-400">
+              Drag and drop or{" "}
+              <span className="font-bold text-blue-600 dark:text-blue-400">
+                browse for a file
+              </span>{" "}
+              to run compression benchmarks
+            </p>
+            <p className="text-sm text-gray-500">
+              All processing happens locally in your browser
+            </p>
           </div>
+        </FileInput>
+      </div>
+
+      {/* Running Status */}
+      {state.kind === "running" ? (
+        <div
+          className="mx-auto flex max-w-4xl items-center justify-between rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <div>
+            <p className="text-lg font-medium text-blue-900 dark:text-blue-100">
+              Benchmarking {state.filename}
+            </p>
+            <p className="text-blue-700 dark:text-blue-300">
+              {state.status || "Preparing..."}
+            </p>
+          </div>
+          <Button
+            className="w-32"
+            disabled={isCancelling}
+            onClick={() => setCancelling(true)}
+            variant="outline"
+          >
+            {isCancelling ? "Cancelling..." : "Cancel"}
+          </Button>
         </div>
       ) : null}
+
+      {/* Results Table */}
       {state.kind === "running" || state.kind === "finished" ? (
-        <div className="my-5 overflow-auto">
+        <div className="overflow-auto">
           <ResultTable iterations={iterations} {...state} />
         </div>
       ) : null}
+
+      {/* Results Chart and Export */}
       {state.kind === "finished" ? (
-        <div className="mx-auto max-w-prose">
-          <ResultChart {...state} />
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <h3 className="text-xl font-semibold">Results Visualization</h3>
+            <ResultsExport
+              filename={state.filename}
+              results={state.results}
+              bytes={state.bytes}
+            />
+          </div>
+          <div className="mx-auto max-w-4xl">
+            <ResultChart {...state} />
+          </div>
         </div>
       ) : null}
-    </>
+    </div>
   );
 };
