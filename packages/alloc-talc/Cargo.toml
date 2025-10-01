@@ -10,6 +10,3 @@ crate-type = ["cdylib", "rlib"]
 [dependencies]
 wasm-bindgen.workspace = true
 talc = { version = "4.4.3", default-features = false, features = ["lock_api"] }
-
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
