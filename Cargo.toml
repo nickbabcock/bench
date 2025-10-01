@@ -2,6 +2,8 @@
 resolver = "2"
 members = [
     "packages/alloc",
+    "packages/alloc-bump",
+    "packages/alloc-talc",
     "packages/br-read",
     "packages/br-write",
     "packages/libdeflate",

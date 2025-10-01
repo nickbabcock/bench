@@ -9,6 +9,8 @@
 run = [
     "cargo build --target wasm32-unknown-unknown --release --workspace",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bump.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_talc.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/br_read.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/br_write.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/libdeflate.wasm",
@@ -19,6 +21,8 @@ run = [
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/zstd_write.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/zune.wasm",
     "wasm-opt -Os ./src/wasm/alloc_bg.wasm -o ./src/wasm/alloc_bg.wasm",
+    "wasm-opt -Os ./src/wasm/alloc_bump_bg.wasm -o ./src/wasm/alloc_bump_bg.wasm",
+    "wasm-opt -Os ./src/wasm/alloc_talc_bg.wasm -o ./src/wasm/alloc_talc_bg.wasm",
     "wasm-opt -Os ./src/wasm/br_read_bg.wasm -o ./src/wasm/br_read_bg.wasm",
     "wasm-opt -Os ./src/wasm/br_write_bg.wasm -o ./src/wasm/br_write_bg.wasm",
     "wasm-opt -Os ./src/wasm/libdeflate_bg.wasm -o ./src/wasm/libdeflate_bg.wasm",

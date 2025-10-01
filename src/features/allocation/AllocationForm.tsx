@@ -8,6 +8,7 @@ import type { WasmWorker } from "./worker";
 type ComparisonResult = {
   standard: BenchmarkResult;
   bump: BenchmarkResult;
+  talc: BenchmarkResult;
 };
 
 const runBenchmarks = async (
@@ -20,7 +21,8 @@ const runBenchmarks = async (
   try {
     const standard = await worker.allocation(text, iterations);
     const bump = await worker.bumpAllocation(text, iterations);
-    return { standard, bump };
+    const talc = await worker.talcAllocation(text, iterations);
+    return { standard, bump, talc };
   } finally {
     worker[releaseProxy]();
     rawWorker.terminate();
@@ -64,17 +66,19 @@ export const AllocationForm: React.FC<{}> = () => {
       </Button>
 
       {results.length > 0 && (
-        <div className="max-w-md space-y-4">
-          <div className="grid grid-cols-3 gap-4 border-b pb-2 font-semibold">
+        <div className="max-w-lg space-y-4">
+          <div className="grid grid-cols-4 gap-4 border-b pb-2 font-semibold">
             <div>Run</div>
             <div>Global Alloc</div>
             <div>Bumpalo Alloc</div>
+            <div>Talc Alloc</div>
           </div>
           {results.map((result, i) => (
-            <div key={i} className="grid grid-cols-3 gap-4">
+            <div key={i} className="grid grid-cols-4 gap-4">
               <div>#{results.length - i}</div>
               <div>{formatFloat(result.standard.elapsedMs)}ms</div>
               <div>{formatFloat(result.bump.elapsedMs)}ms</div>
+              <div>{formatFloat(result.talc.elapsedMs)}ms</div>
             </div>
           ))}
         </div>
