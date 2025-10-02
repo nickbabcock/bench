@@ -19,5 +19,9 @@ members = [
 lto = true
 codegen-units = 1
 
+[profile.profiling]
+inherits = "release"
+debug = true
+
 [workspace.dependencies]
 wasm-bindgen = { version = "0.2.100" }

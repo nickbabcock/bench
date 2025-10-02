@@ -34,6 +34,23 @@ run = [
     "wasm-opt -Os ./src/wasm/zune_bg.wasm -o ./src/wasm/zune_bg.wasm",
 ]
 
+[tasks."build:profiling"]
+run = [
+    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bump.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_talc.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/br_read.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/br_write.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/libdeflate.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/lz4.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/miniz.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zlib_rs.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zstd_read.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zstd_write.wasm",
+    "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zune.wasm",
+]
+
 [tasks."build"]
 run = [
     "mise run build:wasm",
