@@ -2,7 +2,8 @@
 resolver = "2"
 members = [
     "packages/alloc",
-    "packages/alloc-bump",
+    "packages/alloc-bumpalo",
+    "packages/alloc-bump-scope",
     "packages/alloc-talc",
     "packages/br-read",
     "packages/br-write",
