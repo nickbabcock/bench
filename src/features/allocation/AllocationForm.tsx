@@ -42,34 +42,43 @@ export const AllocationForm: React.FC<{}> = () => {
   };
 
   return (
-    <div className="mt-5 flex flex-col space-y-4">
-      <div className="grid grid-cols-[90px_200px] items-center gap-y-2">
-        <label htmlFor={inputId}>Text:</label>
+    <div className="flex flex-col space-y-6">
+      <div className="mx-auto grid w-full max-w-md grid-cols-[90px_1fr] items-center gap-y-4">
+        <label htmlFor={inputId} className="text-gray-700 dark:text-gray-300">
+          Text:
+        </label>
         <input
           id={inputId}
-          className="h-10 rounded-sm border border-slate-500 px-4 text-lg"
+          className="h-10 rounded-sm border border-slate-500 px-4 text-lg dark:bg-gray-700 dark:text-white"
           value={text}
           onChange={(e) => setText(e.target.value)}
         />
 
-        <label htmlFor={iterationsId}>Iterations:</label>
+        <label
+          htmlFor={iterationsId}
+          className="text-gray-700 dark:text-gray-300"
+        >
+          Iterations:
+        </label>
         <input
           id={iterationsId}
-          className="h-10 rounded-sm border border-slate-500 px-4 text-lg"
+          className="h-10 rounded-sm border border-slate-500 px-4 text-lg dark:bg-gray-700 dark:text-white"
           value={iterations}
           onChange={(e) => setIterations(+e.target.value)}
         />
       </div>
 
-      <Button className="w-24" onClick={runBenchmark}>
-        Run
-      </Button>
+      <div className="flex justify-center">
+        <Button className="w-32" onClick={runBenchmark}>
+          Run
+        </Button>
+      </div>
 
       {results.length > 0 && (
-        <div className="max-w-lg space-y-4">
-          <div className="grid grid-cols-4 gap-4 border-b pb-2 font-semibold">
+        <div className="mx-auto w-full max-w-2xl space-y-4">
+          <div className="grid grid-cols-4 gap-4 border-b pb-2 font-semibold dark:border-gray-600">
             <div>Run</div>
-            <div>Global Alloc</div>
+            <div>Dlmalloc Alloc</div>
             <div>Bumpalo Alloc</div>
             <div>Talc Alloc</div>
           </div>
