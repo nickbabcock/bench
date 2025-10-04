@@ -81,7 +81,7 @@ export const AllocationForm: React.FC<{}> = () => {
           <thead>
             <tr className="border-b dark:border-gray-600">
               <th className="px-6 py-2 text-left font-semibold">Run</th>
-              <th className="px-6 py-2 text-right font-semibold">Dlmalloc Alloc</th>
+              <th className="px-6 py-2 text-right font-semibold">Dlmalloc</th>
               <th className="px-6 py-2 text-right font-semibold">Bumpalo</th>
               <th className="px-6 py-2 text-right font-semibold">Bump-Scope</th>
               <th className="px-6 py-2 text-right font-semibold">Talc</th>
