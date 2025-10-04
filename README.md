@@ -1,8 +1,8 @@
 # Benchmarks
 
-## Allocation Benchmark
+A site for hosting Wasm benchmarks. Originally used many years ago to diagnose a chromium bug[^chromium-bug]
 
-For diagnosing a chromium bug: https://bugs.chromium.org/p/chromium/issues/detail?id=1294262#c11
+[^chromium-bug]: https://bugs.chromium.org/p/chromium/issues/detail?id=1294262#c11
 
 ## Contributing
 
