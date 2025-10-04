@@ -7,7 +7,8 @@ import type { WasmWorker } from "./worker";
 
 type ComparisonResult = {
   standard: BenchmarkResult;
-  bump: BenchmarkResult;
+  bumpalo: BenchmarkResult;
+  bumpScope: BenchmarkResult;
   talc: BenchmarkResult;
 };
 
@@ -20,9 +21,10 @@ const runBenchmarks = async (
 
   try {
     const standard = await worker.allocation(text, iterations);
-    const bump = await worker.bumpAllocation(text, iterations);
+    const bumpalo = await worker.bumpaloAllocation(text, iterations);
+    const bumpScope = await worker.bumpScopeAllocation(text, iterations);
     const talc = await worker.talcAllocation(text, iterations);
-    return { standard, bump, talc };
+    return { standard, bumpalo, bumpScope, talc };
   } finally {
     worker[releaseProxy]();
     rawWorker.terminate();
@@ -75,22 +77,28 @@ export const AllocationForm: React.FC<{}> = () => {
       </div>
 
       {results.length > 0 && (
-        <div className="mx-auto w-full max-w-2xl space-y-4">
-          <div className="grid grid-cols-4 gap-4 border-b pb-2 font-semibold dark:border-gray-600">
-            <div>Run</div>
-            <div>Dlmalloc Alloc</div>
-            <div>Bumpalo Alloc</div>
-            <div>Talc Alloc</div>
-          </div>
-          {results.map((result, i) => (
-            <div key={i} className="grid grid-cols-4 gap-4">
-              <div>#{results.length - i}</div>
-              <div>{formatFloat(result.standard.elapsedMs)}ms</div>
-              <div>{formatFloat(result.bump.elapsedMs)}ms</div>
-              <div>{formatFloat(result.talc.elapsedMs)}ms</div>
-            </div>
-          ))}
-        </div>
+        <table className="mx-auto">
+          <thead>
+            <tr className="border-b dark:border-gray-600">
+              <th className="px-6 py-2 text-left font-semibold">Run</th>
+              <th className="px-6 py-2 text-right font-semibold">Global Alloc</th>
+              <th className="px-6 py-2 text-right font-semibold">Bumpalo</th>
+              <th className="px-6 py-2 text-right font-semibold">Bump-Scope</th>
+              <th className="px-6 py-2 text-right font-semibold">Talc</th>
+            </tr>
+          </thead>
+          <tbody>
+            {results.map((result, i) => (
+              <tr key={i}>
+                <td className="px-6 py-2">#{results.length - i}</td>
+                <td className="px-6 py-2 text-right">{formatFloat(result.standard.elapsedMs)}ms</td>
+                <td className="px-6 py-2 text-right">{formatFloat(result.bumpalo.elapsedMs)}ms</td>
+                <td className="px-6 py-2 text-right">{formatFloat(result.bumpScope.elapsedMs)}ms</td>
+                <td className="px-6 py-2 text-right">{formatFloat(result.talc.elapsedMs)}ms</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       )}
     </div>
   );

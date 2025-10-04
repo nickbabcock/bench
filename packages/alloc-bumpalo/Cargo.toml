@@ -1,5 +1,5 @@
 [package]
-name = "alloc-bump"
+name = "alloc-bumpalo"
 version = "0.1.0"
 authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
 edition = "2021"
