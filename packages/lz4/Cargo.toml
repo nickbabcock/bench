@@ -8,5 +8,5 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-lz4_flex = { version = "0.11.3" }
+lz4_flex = { version = "0.13.1" }
 wasm-bindgen.workspace = true
