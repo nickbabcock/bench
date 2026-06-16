@@ -1,7 +1,7 @@
-import allocWasmPath from "@/wasm/alloc_bg.wasm";
-import allocBumpaloWasmPath from "@/wasm/alloc_bumpalo_bg.wasm";
-import allocBumpScopeWasmPath from "@/wasm/alloc_bump_scope_bg.wasm";
-import allocTalcWasmPath from "@/wasm/alloc_talc_bg.wasm";
+import allocWasmPath from "@/wasm/alloc_bg.wasm?url";
+import allocBumpaloWasmPath from "@/wasm/alloc_bumpalo_bg.wasm?url";
+import allocBumpScopeWasmPath from "@/wasm/alloc_bump_scope_bg.wasm?url";
+import allocTalcWasmPath from "@/wasm/alloc_talc_bg.wasm?url";
 import { timeit } from "@/lib/timeit";
 import { load } from "@/lib/wasm";
 

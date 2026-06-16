@@ -2,12 +2,12 @@
   "name": "wasm-bench",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "vite dev",
+    "build": "vite build",
     "format": "npx prettier@latest --write 'src'",
-    "start": "next start",
-    "lint": "next lint"
+    "preview": "vite preview"
   },
   "prettier": {
     "plugins": [
@@ -18,26 +18,30 @@
     ]
   },
   "dependencies": {
+    "@fontsource/inter": "^5.2.8",
+    "@tanstack/react-router": "^1.170.15",
+    "@tanstack/react-start": "^1.168.25",
     "chart.js": "4.4.7",
     "clsx": "2.1.1",
     "comlink": "4.4.2",
     "fflate": "0.8.2",
-    "next": "15.5.7",
     "pako": "2.1.0",
-    "react": "18.3.1",
-    "react-dom": "18.3.1",
+    "react": "^19.2.3",
+    "react-dom": "^19.2.3",
     "zustand": "5.0.2"
   },
   "devDependencies": {
-    "@tailwindcss/postcss": "4.1.10",
-    "@types/node": "22.9.0",
+    "@tailwindcss/vite": "^4.3.1",
+    "@types/node": "^22.12.0",
     "@types/pako": "2.0.3",
-    "@types/react": "18.3.12",
+    "@types/react": "^19.2.7",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
     "eslint": "8.57.0",
-    "eslint-config-next": "15.5.7",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.12",
     "tailwindcss": "4.1.10",
-    "typescript": "5.6.3"
+    "typescript": "5.6.3",
+    "vite": "^8.0.16"
   }
 }

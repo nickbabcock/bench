@@ -1,7 +1,4 @@
-"use client";
-
-import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { GithubIcon } from "@/components/icons";
 
 const navigation = [
@@ -25,7 +22,9 @@ interface SidebarProps {
 }
 
 export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
-  const pathname = usePathname();
+  const pathname = useRouterState({
+    select: (state) => state.location.pathname,
+  });
 
   return (
     <>
@@ -45,17 +44,18 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
         }`}
       >
         <div className="flex h-16 items-center justify-between border-b border-gray-200 px-6 dark:border-gray-700">
-          <Link href="/compression" className="text-xl font-bold">
+          <Link to="/compression" className="text-xl font-bold">
             WASM Bench
           </Link>
           <div className="flex items-center gap-4">
-            <Link
+            <a
               target="_blank"
               href="https://github.com/nickbabcock/bench"
+              rel="noreferrer"
               className="text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-100"
             >
               <GithubIcon alt="Github" className="h-5 w-5" />
-            </Link>
+            </a>
             {/* Close button for mobile */}
             <button
               onClick={onClose}
@@ -88,7 +88,7 @@ export const Sidebar = ({ isOpen = true, onClose }: SidebarProps) => {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 onClick={onClose}
                 aria-current={isActive ? "page" : undefined}
                 className="block rounded-md px-3 py-3 text-gray-700 transition-colors hover:bg-gray-100 aria-[current=page]:bg-blue-100 aria-[current=page]:text-blue-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:aria-[current=page]:bg-blue-900 dark:aria-[current=page]:text-blue-300"
