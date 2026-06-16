@@ -6,6 +6,7 @@
 "vfox:mise-plugins/vfox-clang" = { version = "14.0.6", os = "linux" }
 
 [env]
+_.path = ["{{env.HOME}}/.local/share/mise/installs/vfox-mise-plugins-vfox-clang/14.0.6/bin"]
 CC_wasm32_unknown_unknown = "clang"
 
 [tasks."build:wasm"]
