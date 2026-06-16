@@ -5,6 +5,9 @@
 "ubi:WebAssembly/binaryen" = { version = "version_123", extract_all = "true", bin_path = "bin" }
 "vfox:mise-plugins/vfox-clang" = { version = "14.0.6", os = "linux" }
 
+[env]
+CC_wasm32_unknown_unknown = "{{env.HOME}}/.local/share/mise/installs/vfox-mise-plugins-vfox-clang/14.0.6/envs/clang/bin/clang"
+
 [tasks."build:wasm"]
 run = [
     "cargo build --target wasm32-unknown-unknown --release --workspace",
