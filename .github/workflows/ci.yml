@@ -14,7 +14,8 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - uses: jdx/mise-action@v2
-    - run: sudo apt-get install -y clang
+      with:
+        version: 2026.4.5
     - run: rustup target add wasm32-unknown-unknown
     - name: Npm Install
       run: npm ci

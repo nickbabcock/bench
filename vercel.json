@@ -1,0 +1,3 @@
+{
+  "buildCommand": "MISE_VERSION=v2026.4.5 curl https://mise.run/bash | sh && . ~/.bashrc && mise trust && mise install && mise run build"
+}
