@@ -412,20 +412,15 @@ export const Compression = () => {
 
       {/* Running Status */}
       {state.kind === "running" ? (
-        <div
-          className="mx-auto flex max-w-4xl items-center justify-between rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20"
-          role="status"
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <div>
-            <p className="text-lg font-medium text-blue-900 dark:text-blue-100">
+        <div className="mx-auto flex max-w-4xl items-center justify-between rounded-lg bg-blue-50 p-4 dark:bg-blue-900/20">
+          <output aria-live="polite" aria-atomic="true">
+            <span className="block text-lg font-medium text-blue-900 dark:text-blue-100">
               Benchmarking {state.filename}
-            </p>
-            <p className="text-blue-700 dark:text-blue-300">
+            </span>
+            <span className="block text-blue-700 dark:text-blue-300">
               {state.status || "Preparing..."}
-            </p>
-          </div>
+            </span>
+          </output>
           <Button
             className="w-32"
             disabled={isCancelling}

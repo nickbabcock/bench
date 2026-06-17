@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite dev",
     "build": "vite build",
+    "lint": "oxlint src",
     "format": "npx prettier@latest --write 'src'",
     "preview": "vite preview"
   },
@@ -38,6 +39,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.2",
     "eslint": "8.57.0",
+    "oxlint": "^1.70.0",
     "prettier": "3.4.2",
     "prettier-plugin-tailwindcss": "0.6.12",
     "tailwindcss": "4.1.10",

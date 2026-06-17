@@ -63,11 +63,7 @@ export const AlgorithmSelector = () => {
         </div>
       </div>
 
-      <div
-        className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5"
-        role="group"
-        aria-labelledby="algorithm-selection-heading"
-      >
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 lg:grid-cols-5">
         {algorithmList.map((alg) => (
           <label
             key={alg.key}

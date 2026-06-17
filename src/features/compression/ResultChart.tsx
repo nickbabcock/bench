@@ -90,12 +90,11 @@ const chartDatasets = (bytes: number, rows: BenchmarkProfile[]) => {
 };
 
 type ResultChartProps = {
-  filename: string;
   bytes: number;
   results: BenchmarkProfile[];
 };
 
-export const ResultChart = ({ filename, bytes, results }: ResultChartProps) => {
+export const ResultChart = ({ bytes, results }: ResultChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const chartRef = useRef<Chart | undefined>(undefined);
   const containerRef = useRef<HTMLDivElement>(null);
