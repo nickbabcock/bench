@@ -9,6 +9,7 @@ members = [
     "packages/br-write",
     "packages/libdeflate",
     "packages/lz4",
+    "packages/memory64",
     "packages/miniz",
     "packages/zlib-rs",
     "packages/zstd-read",

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AllocationRouteImport } from './routes/allocation'
 import { Route as CompressionRouteImport } from './routes/compression'
+import { Route as Memory64RouteImport } from './routes/memory64'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -28,35 +29,44 @@ const CompressionRoute = CompressionRouteImport.update({
   path: '/compression',
   getParentRoute: () => rootRouteImport,
 } as any)
+const Memory64Route = Memory64RouteImport.update({
+  id: '/memory64',
+  path: '/memory64',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
   '/compression': typeof CompressionRoute
+  '/memory64': typeof Memory64Route
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
   '/compression': typeof CompressionRoute
+  '/memory64': typeof Memory64Route
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
   '/compression': typeof CompressionRoute
+  '/memory64': typeof Memory64Route
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/allocation' | '/compression'
+  fullPaths: '/' | '/allocation' | '/compression' | '/memory64'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/allocation' | '/compression'
-  id: '__root__' | '/' | '/allocation' | '/compression'
+  to: '/' | '/allocation' | '/compression' | '/memory64'
+  id: '__root__' | '/' | '/allocation' | '/compression' | '/memory64'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AllocationRoute: typeof AllocationRoute
   CompressionRoute: typeof CompressionRoute
+  Memory64Route: typeof Memory64Route
 }
 
 declare module '@tanstack/react-router' {
@@ -82,6 +92,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof CompressionRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/memory64': {
+      id: '/memory64'
+      path: '/memory64'
+      fullPath: '/memory64'
+      preLoaderRoute: typeof Memory64RouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -89,6 +106,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AllocationRoute: AllocationRoute,
   CompressionRoute: CompressionRoute,
+  Memory64Route: Memory64Route,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -1,3 +1,4 @@
+import { Link } from "@tanstack/react-router";
 import { AllocationForm } from "./AllocationForm";
 
 export const Allocation = () => {
@@ -26,9 +27,9 @@ export const Allocation = () => {
           </li>
           <li>
             <strong>4 GB memory limit:</strong> Wasm uses 32-bit addressing,
-            limiting addressable memory to 4 GB. While wasm64 increases this
-            to 16 GB, it remains a Tier 3 platform in Rust that lacks
-            wasm-bindgen support. Early testing suggests{" "}
+            limiting addressable memory to 4 GB. wasm64 (memory64) raises
+            this to 16 GB, but it is a Tier 3 Rust target that requires a
+            nightly compiler, and it can come with{" "}
             <a
               href="https://spidermonkey.dev/blog/2025/01/15/is-memory64-actually-worth-using.html"
               className="text-blue-600 underline dark:text-blue-400"
@@ -36,9 +37,16 @@ export const Allocation = () => {
               rel="noopener noreferrer"
             >
               performance degradations
-            </a>{" "}
-            may accompany wasm64. Small string optimizations may be less
-            effective in Wasm than in an 64 bit environment.
+            </a>
+            . See the{" "}
+            <Link
+              to="/memory64"
+              className="text-blue-600 underline dark:text-blue-400"
+            >
+              memory64 benchmarks
+            </Link>{" "}
+            to measure the impact in your browser. Small string optimizations
+            may be less effective in Wasm than in an 64 bit environment.
           </li>
           <li>
             <strong>Browser differences:</strong> Allocator performance varies

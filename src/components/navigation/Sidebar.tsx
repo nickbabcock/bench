@@ -14,6 +14,12 @@ const navigation = [
     description:
       "Compare Rust's allocator performance with global and bump allocators.",
   },
+  {
+    name: "Memory64",
+    href: "/memory64",
+    description:
+      "Measure the cost of wasm64 (memory64) against wasm32 with a bevy_ecs simulation.",
+  },
 ];
 
 interface SidebarProps {
