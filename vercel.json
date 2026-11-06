@@ -1,3 +1,0 @@
-{
-  "buildCommand": "curl https://mise.run/bash | sh && . ~/.bashrc && mise trust && mise install && mise run build"
-}
