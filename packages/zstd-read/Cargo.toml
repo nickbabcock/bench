@@ -8,5 +8,5 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-zstd = { version = "0.13.0", default-features = false, features = ["fat-lto"] }
+zstd = { version = "0.14.3", default-features = false, features = ["fat-lto"] }
 wasm-bindgen.workspace = true

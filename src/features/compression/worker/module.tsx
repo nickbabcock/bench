@@ -10,7 +10,7 @@ import libdeflatePath from "@/wasm/libdeflate_bg.wasm?url";
 import zlibrsPath from "@/wasm/zlib_rs_bg.wasm?url";
 import { transfer } from "comlink";
 import type { GzipOptions } from "fflate";
-import type Pako from "pako";
+import type { DeflateOptions } from "pako";
 import { load } from "@/lib/wasm";
 
 const miniz = load({
@@ -58,7 +58,7 @@ const zlibrs = load({
   wasm: zlibrsPath,
 });
 
-export async function nativeCompress(data: Uint8Array) {
+export async function nativeCompress(data: Uint8Array<ArrayBuffer>) {
   const [response, elapsedMs] = await timeit(() => {
     const cs = new CompressionStream("gzip");
     const pipe = new Blob([data]).stream().pipeThrough(cs);
@@ -68,7 +68,7 @@ export async function nativeCompress(data: Uint8Array) {
   return transfer({ out, elapsedMs }, [out.buffer]);
 }
 
-export async function nativeDecompress(data: Uint8Array) {
+export async function nativeDecompress(data: Uint8Array<ArrayBuffer>) {
   const [response, elapsedMs] = await timeit(() => {
     const cs = new DecompressionStream("gzip");
     const pipe = new Blob([data]).stream().pipeThrough(cs);
@@ -80,7 +80,7 @@ export async function nativeDecompress(data: Uint8Array) {
 
 export async function pakoCompress(
   data: Uint8Array,
-  level: Pako.DeflateFunctionOptions["level"],
+  level: DeflateOptions["level"],
 ) {
   const pako = await import("pako");
   const [out, elapsedMs] = await timeit(() => pako.deflate(data, { level }));

@@ -9,13 +9,13 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as CompressionRouteImport } from './routes/compression'
-import { Route as AllocationRouteImport } from './routes/allocation'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as AllocationRouteImport } from './routes/allocation'
+import { Route as CompressionRouteImport } from './routes/compression'
 
-const CompressionRoute = CompressionRouteImport.update({
-  id: '/compression',
-  path: '/compression',
+const IndexRoute = IndexRouteImport.update({
+  id: '/',
+  path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AllocationRoute = AllocationRouteImport.update({
@@ -23,9 +23,9 @@ const AllocationRoute = AllocationRouteImport.update({
   path: '/allocation',
   getParentRoute: () => rootRouteImport,
 } as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
+const CompressionRoute = CompressionRouteImport.update({
+  id: '/compression',
+  path: '/compression',
   getParentRoute: () => rootRouteImport,
 } as any)
 
@@ -61,11 +61,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/compression': {
-      id: '/compression'
-      path: '/compression'
-      fullPath: '/compression'
-      preLoaderRoute: typeof CompressionRouteImport
+    '/': {
+      id: '/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/allocation': {
@@ -75,11 +75,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AllocationRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
+    '/compression': {
+      id: '/compression'
+      path: '/compression'
+      fullPath: '/compression'
+      preLoaderRoute: typeof CompressionRouteImport
       parentRoute: typeof rootRouteImport
     }
   }

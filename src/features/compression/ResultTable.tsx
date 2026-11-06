@@ -1,5 +1,5 @@
 import { formatFloat } from "@/lib/format";
-import clsx from "clsx";
+import { clsx } from "clsx";
 import { useMemo } from "react";
 import { BenchmarkProfile } from "./types";
 import { useActions, useActives } from "./store";
