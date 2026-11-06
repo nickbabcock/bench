@@ -9,6 +9,9 @@
 ]
 "github:rustwasm/wasm-bindgen" = { version = "0.2.130" }
 "github:WebAssembly/binaryen" = { version = "version_133", strip_components = 1, bin_path = "bin" }
+# Compiles the zstd and libdeflate C code to wasm. Apple clang and MSVC cannot
+# compile to wasm32-unknown-unknown.
+"github:WebAssembly/wasi-sdk" = { version = "wasi-sdk-29", strip_components = 1, bin_path = "bin", os = ["macos", "windows"] }
 
 [vars]
 rust_nightly = "nightly-2026-11-01"
