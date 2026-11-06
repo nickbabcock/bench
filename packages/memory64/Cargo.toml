@@ -1,0 +1,12 @@
+[package]
+name = "memory64"
+version = "0.1.0"
+authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+bevy_ecs = { version = "0.20.1", default-features = false, features = ["std"] }
+wasm-bindgen.workspace = true

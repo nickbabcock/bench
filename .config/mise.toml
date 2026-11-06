@@ -1,12 +1,21 @@
 [tools]
 "node" = { version = "26.13.0" }
-"rust" = { version = "1.99.1", targets = "wasm32-unknown-unknown" }
+"rust" = [
+    { version = "1.99.1", targets = "wasm32-unknown-unknown" },
+    # wasm64-unknown-unknown (memory64) is a tier 3 target without a prebuilt
+    # std, so the memory64 benchmark builds std from source on a pinned nightly.
+    # Keep in sync with `vars.rust_nightly`.
+    { version = "nightly-2026-11-01", components = "rust-src", profile = "minimal" },
+]
 "github:rustwasm/wasm-bindgen" = { version = "0.2.130" }
 "github:WebAssembly/binaryen" = { version = "version_133", strip_components = 1, bin_path = "bin" }
 
+[vars]
+rust_nightly = "nightly-2026-11-01"
+
 [tasks."build:wasm"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --release --workspace",
+    "cargo build --target wasm32-unknown-unknown --release --workspace --exclude memory64",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bumpalo.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bump_scope.wasm",
@@ -33,11 +42,24 @@ run = [
     "wasm-opt -Os ./src/wasm/zstd_read_bg.wasm -o ./src/wasm/zstd_read_bg.wasm",
     "wasm-opt -Os ./src/wasm/zstd_write_bg.wasm -o ./src/wasm/zstd_write_bg.wasm",
     "wasm-opt -Os ./src/wasm/zune_bg.wasm -o ./src/wasm/zune_bg.wasm",
+    "mise run build:memory64",
+]
+
+# Both wasm32 and wasm64 builds use the same nightly compiler and flags
+# (including a from-source std) so pointer width is the only variable. A
+# separate target dir keeps nightly artifacts from thrashing the stable ones.
+[tasks."build:memory64"]
+run = [
+    "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p memory64 --target wasm32-unknown-unknown --target wasm64-unknown-unknown --target-dir ./target/nightly",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name memory64_wasm32 ./target/nightly/wasm32-unknown-unknown/release/memory64.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name memory64_wasm64 ./target/nightly/wasm64-unknown-unknown/release/memory64.wasm",
+    "wasm-opt -Os ./src/wasm/memory64_wasm32_bg.wasm -o ./src/wasm/memory64_wasm32_bg.wasm",
+    "wasm-opt -Os ./src/wasm/memory64_wasm64_bg.wasm -o ./src/wasm/memory64_wasm64_bg.wasm",
 ]
 
 [tasks."build:profiling"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace",
+    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace --exclude memory64",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bumpalo.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bump_scope.wasm",
@@ -51,6 +73,8 @@ run = [
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zstd_read.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zstd_write.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/zune.wasm",
+    # memory64 is built separately with nightly; use its release build here.
+    "mise run build:memory64",
 ]
 
 [tasks."build"]

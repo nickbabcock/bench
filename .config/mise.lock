@@ -129,3 +129,12 @@ specifiers = ["1.99.1"]
 
 [tools.rust.options]
 targets = "wasm32-unknown-unknown"
+
+[[tools.rust]]
+version = "nightly-2026-11-01"
+backend = "core:rust"
+specifiers = ["nightly-2026-11-01"]
+
+[tools.rust.options]
+components = "rust-src"
+profile = "minimal"
