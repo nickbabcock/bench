@@ -141,7 +141,9 @@ const useRunCompressionBenchmarks = ({
 
   const run = async (file: File) => {
     cancelSignal.current = false;
-    const rawWorker = new Worker(new URL("./worker", import.meta.url));
+    const rawWorker = new Worker(new URL("./worker", import.meta.url), {
+    type: "module",
+  });
     const worker = wrap<WasmWorker>(rawWorker);
     const data = new Uint8Array(await file.arrayBuffer());
 

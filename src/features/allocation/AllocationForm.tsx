@@ -16,7 +16,9 @@ const runBenchmarks = async (
   text: string,
   iterations: number,
 ): Promise<ComparisonResult> => {
-  const rawWorker = new Worker(new URL("./worker", import.meta.url));
+  const rawWorker = new Worker(new URL("./worker", import.meta.url), {
+    type: "module",
+  });
   const worker = wrap<WasmWorker>(rawWorker);
 
   try {
