@@ -1,8 +1,7 @@
 use wasm_bindgen::prelude::*;
 
-/// SAFETY: The runtime environment is single-threaded WASM.
 #[global_allocator]
-static ALLOCATOR: talc::TalckWasm = unsafe { talc::TalckWasm::new_global() };
+static ALLOCATOR: talc::wasm::WasmDynamicTalc = talc::wasm::new_wasm_dynamic_allocator();
 
 #[wasm_bindgen]
 pub fn talc_allocation(corpus: &str, iterations: usize) -> usize {

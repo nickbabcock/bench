@@ -1,6 +1,6 @@
 import { useRef, useId } from "react";
 import { useFileDrop } from "@/hooks";
-import clsx from "clsx";
+import { clsx } from "clsx";
 
 type FileInputProps = {
   onChange: (file: File) => void | Promise<void>;

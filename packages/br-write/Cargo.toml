@@ -8,5 +8,5 @@ edition = "2021"
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-brotli = "7.0.0"
+brotli = "9.1.1"
 wasm-bindgen.workspace = true

@@ -25,4 +25,4 @@ inherits = "release"
 debug = true
 
 [workspace.dependencies]
-wasm-bindgen = { version = "0.2.100" }
+wasm-bindgen = { version = "0.2.130" }
