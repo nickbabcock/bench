@@ -18,6 +18,10 @@ export MISE_SYSTEM_CONFIG_FILE="$empty_config"
 export MISE_CEILING_PATHS="$(dirname "$PWD")"
 export MISE_TRUSTED_CONFIG_PATHS="$PWD"
 
+# The build log does not show colors. mise and Vite use colors when CI is set,
+# and Cloudflare Pages sets CI.
+export NO_COLOR=1
+
 # Add the tools in .config/mise.cloudflare.toml.
 export MISE_ENV=cloudflare
 
