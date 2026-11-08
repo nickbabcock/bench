@@ -1,0 +1,5 @@
+# Tools for the Cloudflare Pages build. Set MISE_ENV=cloudflare to use them.
+[tools]
+# The build image does not have clang. Use the wasi-sdk clang to compile the
+# zstd and libdeflate C code to wasm.
+"github:WebAssembly/wasi-sdk" = { version = "wasi-sdk-29", strip_components = 1, bin_path = "bin" }
