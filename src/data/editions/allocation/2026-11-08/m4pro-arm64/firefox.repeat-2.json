@@ -40,7 +40,7 @@
    "bevy_ecs": "0.20.1"
   }
  },
- "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "commit": {"sha":"ef16b9543512316ae29de3c67507e6371084ee52","dirty":false},
  "artifacts": [
   {"name":"alloc_bg.wasm","sha256":"507c0dd00c71371c4fbcd5a45aa96fca5728eae2ae20d598dfa3475a7148c6c3","bytes":45897},
   {"name":"alloc_bump_scope_bg.wasm","sha256":"a72aceb4be6d70e45cfb4ac915047a8b6400f355ea88823d89fa263190798cd6","bytes":51689},

@@ -40,7 +40,7 @@
    "bevy_ecs": "0.20.1"
   }
  },
- "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "commit": {"sha":"ef16b9543512316ae29de3c67507e6371084ee52","dirty":false},
  "artifacts": [
   {"name":"corpus_bg.wasm","sha256":"f35f70fcf55f73022df9ef8a7695abe6be8c2eaccd95237e02a3c1ca5eee7f1b","bytes":138634},
   {"name":"variants/alloc/off-none/alloc_bg.wasm","sha256":"ab2887573b311b69ff8536abd581ec3a560815a4c547ae6d2060588ccaa262b8","bytes":48755},
@@ -577,7 +577,7 @@
    "capturedAt": "2026-11-09T01:52:52.665Z",
    "endedAt": "2026-11-09T01:53:04.892Z",
    "browserVersion": "26.5.2",
-   "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+   "commit": {"sha":"ef16b9543512316ae29de3c67507e6371084ee52","dirty":false},
    "repeatDrift": {"factor":0.974,"outliers":0}
   }
  ]

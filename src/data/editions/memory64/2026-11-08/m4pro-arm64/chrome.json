@@ -40,7 +40,7 @@
    "bevy_ecs": "0.20.1"
   }
  },
- "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "commit": {"sha":"ef16b9543512316ae29de3c67507e6371084ee52","dirty":false},
  "artifacts": [
   {"name":"memory64_wasm32_bg.wasm","sha256":"b0ba767ff81186ccd1708c1e93091bf22a6e1c08a3363c64b6f00382cbf9eb3c","bytes":254632},
   {"name":"memory64_wasm64_bg.wasm","sha256":"c4914b49114e0a6360dd77baeb0b5de84297b69d688eae0d13c2ffcc28167cab","bytes":262986}
