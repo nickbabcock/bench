@@ -131,7 +131,7 @@ const pair = (id: string, label: string, subject: [WorkloadId, Variant], referen
 export const lockComparisons = (v: Variant): Comparison[] => [
   pair(`mutex-refcell-op:${v}`, "Mutex ÷ RefCell, one call", ["op/mutex", v], ["op/refcell_write", v]),
   pair(`mutex-refcell-loop:${v}`, "Mutex ÷ RefCell, in a loop", ["loop/mutex", v], ["loop/refcell_write", v]),
-  pair(`arc-rc-app:${v}`, "Arc<Mutex> ÷ Rc<RefCell>, method call", ["app/arc_mutex", v], ["app/rc_refcell", v]),
+  pair(`arc-rc-app:${v}`, "Arc<Mutex> ÷ Rc<RefCell>, method", ["app/arc_mutex", v], ["app/rc_refcell", v]),
   pair(`try-lock:${v}`, "try_lock ÷ lock", ["op/mutex_try", v], ["op/mutex", v]),
   pair(`held-mutex:${v}`, "Guard held ÷ lock per iteration", ["held/mutex", v], ["loop/mutex", v]),
 ];

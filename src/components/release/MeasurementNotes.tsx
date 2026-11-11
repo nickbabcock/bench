@@ -265,9 +265,12 @@ export const MeasurementNotes = ({ edition: e, items = [], rawHref, rawBytes, li
       <p className="prose-links mt-1 text-cap text-ink-2">
         {line.map((x, i) => (
           <Fragment key={i}>
-            {/* The space lets the line wrap between items on a phone. */}
-            {i > 0 ? <span className="px-1.5 text-ink-3">·</span> : null}{" "}
-            <span className="whitespace-nowrap">{x}</span>
+            {/* The space lets the line wrap between items on a phone. The dot starts its item, so a full line does not end in a dot past the edge. */}
+            {i > 0 ? " " : null}
+            <span className="whitespace-nowrap">
+              {i > 0 ? <span className="pr-1.5 text-ink-3">·</span> : null}
+              {x}
+            </span>
           </Fragment>
         ))}
       </p>

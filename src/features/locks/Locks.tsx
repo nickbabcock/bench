@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { DotRange, type DotRangeCell, type DotRangeRow, Legend, ratioTick, Tip } from "@/components/charts";
+import { DotRange, type DotRangeCell, type DotRangeRow, Legend, Tip } from "@/components/charts";
 import { ExportButtons } from "@/components/ExportButtons";
 import { integerError, NumberInput, numberFieldClass } from "@/components/Field";
 import {
@@ -62,6 +62,9 @@ const sub = (text: React.ReactNode) => <small className="block text-xs leading-t
 /** A paired effect as a figure cell: median, 95% CI, min–max; marked when it clears the claim rule. */
 const effectCell = (e: PairedEffect | undefined): DotRangeCell | undefined =>
   e && Number.isFinite(e.median) ? { value: e.median, range: e.ci ? [e.ci.lo, e.ci.hi] : undefined, faint: [e.min, e.max], highlight: isPairedClaim(e.claim) } : undefined;
+
+/** A ratio tick as a multiple, as the text and the table give ratios: "0.5×", "1×", "4×"; three digits near 1. */
+const timesTick = (r: number) => `${+r.toPrecision(r > 0.9 && r < 1.1 ? 3 : 2)}×`;
 
 /** How the lock modules are built: the nightly, std from source, their own target features and no wasm-opt. */
 const locksBuild = () => `${toolchainSummary(true)}, no wasm-opt`;
@@ -164,7 +167,7 @@ export const Locks = () => {
     threshold: PRACTICAL_FLOOR,
     title,
     format: (v: number) => v.toFixed(3),
-    tickFormat: ratioTick,
+    tickFormat: timesTick,
     ends: ["less time", "more time"] as [string, string],
   });
   const ratioTip = (r: DotRangeRow, c: DotRangeCell, f?: { id: string; title: React.ReactNode }) => (

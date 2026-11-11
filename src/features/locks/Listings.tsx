@@ -69,7 +69,7 @@ const Panel = ({ side, text, time }: { side: Side; text: string | undefined; tim
     <p className="mt-1 text-sm text-ink-2">
       <code>{workloadById[side.workload].code}</code>
     </p>
-    <pre className="mt-2 max-h-[34rem] overflow-auto bg-band px-4 py-3 text-[0.8125rem] leading-[1.55] text-ink">
+    <pre className="mt-2 overflow-x-auto bg-band px-4 py-3 text-[0.8125rem] leading-[1.45] text-ink">
       <code>{text ?? "—"}</code>
     </pre>
   </div>

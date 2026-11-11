@@ -168,7 +168,8 @@ export function linearScale(
 /**
  * Log-ratio axis for paired effects (1 = no change), ticked in round
  * percentages of time either side: −50, −30, −20, −10, −5, −3, −2, −1%,
- * 0, +1 … +200%, at 1 − p and 1 + p (the site's one convention: a time
+ * 0, +1 … +200%, at 1 − p and 1 + p. A wide range gets −90, −75, −50%,
+ * 0, +100, +300, +900% (the site's one convention: a time
  * ratio r is |r − 1| less or more time). The domain covers [lo, hi], the
  * threshold, and at least ±5%, symmetric in log terms.
  */
@@ -178,11 +179,13 @@ export function ratioScale(lo: number, hi: number, r0: number, r1: number, fit: 
   const s = make("log", Math.exp(-reach), Math.exp(reach), r0, r1, []);
   const pcts = [1, 2, 3, 5, 10, 20, 30, 50, 100, 200];
   const inside = (r: number) => Math.abs(Math.log(r)) <= reach;
-  // Densest round-percentage set whose labels fit.
-  const sets = [pcts, [1, 2, 5, 10, 20, 50, 100, 200], [2, 5, 10, 20, 50, 100], [5, 10, 50, 100], [10, 100], [20, 100], [50]];
-  for (const set of sets) {
-    const below = set.filter((p) => p < 100 && inside(1 - p / 100)).map((p) => 1 - p / 100);
-    const above = set.filter((p) => inside(1 + p / 100)).map((p) => 1 + p / 100);
+  // Densest round-percentage set whose labels fit: [less, more] in percent.
+  const sets: [number[], number[]][] = [pcts, [1, 2, 5, 10, 20, 50, 100, 200], [2, 5, 10, 20, 50, 100], [5, 10, 50, 100], [10, 100], [20, 100]].map((set) => [set, set]);
+  // A wide range (one operation 6× as long as another): about 2× a step.
+  sets.push([[50, 75, 90], [100, 300, 900]], [[50, 90], [100, 900]], [[50], [100]], [[50], [50]]);
+  for (const [less, more] of sets) {
+    const below = less.filter((p) => p < 100 && inside(1 - p / 100)).map((p) => 1 - p / 100);
+    const above = more.filter((p) => inside(1 + p / 100)).map((p) => 1 + p / 100);
     const ticks = [...below.reverse(), 1, ...above];
     if (ticks.length > 1 && spaced(ticks.map(s), ticks.map(fit.measure), fit.gap ?? 8)) {
       s.ticks = ticks;
