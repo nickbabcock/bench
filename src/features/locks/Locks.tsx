@@ -40,7 +40,7 @@ import { fileDate, toCSV, toMarkdown } from "@/lib/export";
 import { listText, machineLabel, type MachineRef } from "@/lib/findings";
 import { plural } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
-import { isPairedClaim, type PairedEffect, summarize } from "@/lib/stats";
+import { isPairedClaim, type PairedEffect, PRACTICAL_FLOOR, summarize } from "@/lib/stats";
 import { baselineEffect, comparisonEffect, effectWords, runClaim, samplesOf } from "./claims";
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
@@ -77,7 +77,7 @@ const noPoints = (mine: boolean, pending: number, replicated: boolean) =>
       : unreproducedNote(pending, replicated);
 
 /** What to try after an error, by its kind. */
-const recovery = (error: string) => (/worker|import|fetch|load|compile|instantiate/i.test(error) ? "a build or its worker failed to load" : undefined);
+const recovery = (error: string) => (/\b(worker|import|fetch|load|compile|instantiate)\b/i.test(error) ? "a build or its worker failed to load; reload the page and try again" : undefined);
 
 export const Locks = () => {
   const ref = reference();
@@ -155,7 +155,7 @@ export const Locks = () => {
   const ratioAxis = (title: string) => ({
     kind: "ratio" as const,
     reference: 1,
-    threshold: 0.03,
+    threshold: PRACTICAL_FLOOR,
     title,
     format: (v: number) => v.toFixed(3),
     tickFormat: ratioTick,
@@ -174,7 +174,7 @@ export const Locks = () => {
         { mark: { kind: "dot", tone: "grey" }, label: "Not claimed" },
         { mark: { kind: "whisker", tone: "grey" }, label: "95% CI" },
         { mark: { kind: "faint" }, label: "Min–max" },
-        { mark: { kind: "band" }, label: "±3% threshold" },
+        { mark: { kind: "band" }, label: `±${PRACTICAL_FLOOR * 100}% threshold` },
       ]}
     />
   );
@@ -201,7 +201,7 @@ export const Locks = () => {
           return (
             <>
               <span className={e && isPairedClaim(e.claim) ? "font-semibold" : undefined}>{ns(st.median)}</span>
-              {sub(e ? `${e.median.toFixed(2)}× ${w.baseline}` : "baseline")}
+              {sub(e ? `${e.median.toFixed(2)}× ${w.baseline}` : w.baseline === w.id ? "baseline" : `${w.baseline} not measured`)}
             </>
           );
         },
@@ -287,7 +287,7 @@ export const Locks = () => {
           <MainPoints
             tone={tone}
             points={points}
-            empty={noPoints(showMine, pending.length, entries.some((e) => e.replicates.length > 0))}
+            empty={noPoints(showMine, pending.length, settings.some((s) => s.replicates.length > 0))}
           />
         </Section>
 

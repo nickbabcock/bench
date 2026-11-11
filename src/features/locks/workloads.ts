@@ -8,20 +8,17 @@
 export type Variant = "abort" | "unwind" | "atomics";
 export const variants: readonly Variant[] = ["abort", "unwind", "atomics"];
 
-export const variantInfo: Record<Variant, { label: string; short: string; detail: string }> = {
+export const variantInfo: Record<Variant, { label: string; detail: string }> = {
   abort: {
     label: "panic=abort",
-    short: "abort",
     detail: "The default for wasm32-unknown-unknown and the WASI targets. std has no poison flag, and Mutex is one Cell<bool>.",
   },
   unwind: {
     label: "panic=unwind",
-    short: "unwind",
     detail: "std rebuilt for unwinding. The poison flag and the panic count checks come back into every lock.",
   },
   atomics: {
     label: "+atomics",
-    short: "atomics",
     detail: "std rebuilt with atomics and shared memory. Mutex and RwLock become futex locks; no second thread runs.",
   },
 };

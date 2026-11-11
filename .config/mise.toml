@@ -54,6 +54,9 @@ run = [
 # (including a from-source std) so pointer width is the only variable. A
 # separate target dir keeps nightly artifacts from thrashing the stable ones.
 [tasks."build:memory64"]
+# An empty RUSTFLAGS: build:locks:abort shares this target dir and std, so
+# flags from the environment must not reach one of the two only.
+env = { RUSTFLAGS = "" }
 run = [
     "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p memory64 --target wasm32-unknown-unknown --target wasm64-unknown-unknown --target-dir ./target/nightly",
     "wasm-bindgen --target web --out-dir ./src/wasm --out-name memory64_wasm32 ./target/nightly/wasm32-unknown-unknown/release/memory64.wasm",

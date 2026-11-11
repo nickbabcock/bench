@@ -1,17 +1,10 @@
-import { isExploratory } from "@/lib/evidence";
 import { pct, times } from "@/lib/findings";
-import { isPairedClaim, median, type PairedEffect, pairedEffect, pairedRatios } from "@/lib/stats";
+import { isPairedClaim, type PairedEffect, pairedEffect, pairedRatios } from "@/lib/stats";
 import type { ResultRow } from "./harness";
 import { type Comparison, lockComparisons, type Variant, type WorkloadId, workloadById } from "./workloads";
 
 /** One cell's ns per operation, one per round; undefined when the build was not measured. */
 export const samplesOf = (row: ResultRow, variant: Variant, workload: WorkloadId) => row.samples[variant]?.[workload];
-
-/** One cell's median ns per operation. */
-export const nsPerOp = (row: ResultRow, variant: Variant, workload: WorkloadId) => {
-  const xs = samplesOf(row, variant, workload);
-  return xs?.length ? median(xs) : NaN;
-};
 
 /**
  * A comparison as a paired time ratio, subject ÷ reference, with the
@@ -42,9 +35,6 @@ export const effectWords = (e: PairedEffect) =>
 /** One line on a finished run, for the live region. */
 export const runClaim = (row: ResultRow) => {
   const e = comparisonEffect(row, lockComparisons("abort")[0])!;
-  if (isExploratory(e.n)) {
-    return "One sample per build, so no verdict.";
-  }
   return isPairedClaim(e.claim)
     ? `In the default build, one Mutex lock took ${ratioWords(e.median)} one RefCell borrow.`
     : "In the default build, one Mutex lock and one RefCell borrow took about the same time.";

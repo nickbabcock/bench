@@ -102,6 +102,8 @@ describe("locks capture validation", () => {
     expect(validateEdition(edition(row({}, 19)))).toContain("raw.samples[abort][op/plain]: expected 20 positive samples");
     expect(validateEdition(edition({ ...row(), checksumsMatch: false as never }))).toEqual(["raw checksums differ between builds"]);
     expect(validateEdition(edition({ ...row(), variants: ["unwind"] }))).toEqual(["raw must be a locks run that measured the abort build"]);
+    expect(validateEdition(edition({ ...row(), variants: ["abort", "atomic"] }))).toContain("raw.variants must be among abort, unwind, atomics");
+    expect(validateEdition(edition({ ...row(), skipped: undefined }))).toEqual(["raw must record skipped, flags, calls and iterations"]);
     const short = row();
     const { "op/plain": _dropped, ...rest } = short.samples.unwind!;
     short.samples.unwind = rest as typeof short.samples.abort;

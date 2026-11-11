@@ -388,6 +388,13 @@ function validateRaw(bench: BenchId, raw: unknown, n: number): string[] {
       if (!isObj(run) || !Array.isArray(run.variants) || !run.variants.includes("abort") || !isObj(run.samples)) {
         return ["raw must be a locks run that measured the abort build"];
       }
+      const builds = ["abort", "unwind", "atomics"];
+      if (!run.variants.every((v) => builds.includes(v as string))) {
+        errors.push(`raw.variants must be among ${builds.join(", ")}`);
+      }
+      if (!isObj(run.skipped) || !isObj(run.flags) || !isObj(run.calls) || !Number.isInteger(run.iterations)) {
+        errors.push("raw must record skipped, flags, calls and iterations");
+      }
       // Every build has the default build's workloads, so the page can read any cell.
       const expected = Object.keys(((run.samples as Obj).abort as Obj | undefined) ?? {}).sort().join();
       for (const v of run.variants as string[]) {
