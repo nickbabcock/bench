@@ -15,7 +15,7 @@ import { setSampleCount as setMemory64Samples, startRun as startMemory64, useMem
 import * as m64 from "@/features/memory64/harness";
 import { supportsMemory64 } from "@/features/memory64/workloads";
 import { planFor, startRun as startBuild, useBuildSession } from "@/features/build/session";
-import { setSampleCount as setLocksSamples, startRun as startLocks, useLocksSession } from "@/features/locks/session";
+import { MAX_ROUNDS as LOCKS_MAX_ROUNDS, MIN_ROUNDS as LOCKS_MIN_ROUNDS, setSampleCount as setLocksSamples, startRun as startLocks, useLocksSession } from "@/features/locks/session";
 import { ITERATIONS as LOCKS_ITERATIONS, variants as lockVariants, workloadIds as lockWorkloads } from "@/features/locks/workloads";
 import { BUILD_CORPORA } from "@/features/build/input";
 import { AA, BASELINE as BUILD_BASELINE, BROTLI_QUALITY, DEFLATE_LEVEL, type SubjectKey, subjectKeys, subjects, variantIds, ZSTD_LEVEL } from "@/features/build/subjects";
@@ -155,6 +155,9 @@ async function runBench(bench: BenchId, input: CorpusId | null, samples: number,
       };
     }
     case "locks": {
+      if (!Number.isInteger(samples) || samples < LOCKS_MIN_ROUNDS || samples > LOCKS_MAX_ROUNDS) {
+        throw new Error(`locks needs ${LOCKS_MIN_ROUNDS}–${LOCKS_MAX_ROUNDS} samples, not ${samples}`);
+      }
       setLocksSamples(samples);
       await startLocks();
       const s = useLocksSession.getState();

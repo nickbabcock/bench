@@ -162,8 +162,8 @@ impl Containers {
 }
 
 // ---------------------------------------------------------------------------
-// op: one kernel call for each operation. `black_box` on the container for
-// every iteration stops LLVM from lifting the flag out of the loop.
+// op: one kernel call for each operation. `black_box` on the container in
+// each iteration stops LLVM: it can not lift the flag out of the loop.
 // ---------------------------------------------------------------------------
 
 #[inline(never)]

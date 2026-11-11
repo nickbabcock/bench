@@ -49,12 +49,6 @@ describe("locks findings", () => {
     const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row())]);
     expect(f.title).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow in Chrome");
   });
-  it("leaves a browser whose builds disagreed out of the claim and its count", () => {
-    const bad = { ...row({ "abort op/mutex": 3 }), checksumsMatch: false };
-    const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row()), cell("Safari", bad)]);
-    expect(f.claim?.cells?.map((c) => c.engine)).toEqual(["Chrome"]);
-    expect(f.claim?.scope).toBe("in Chrome");
-  });
   it("makes no claim within the threshold", () => {
     const f = ask(unwindCost, [cell("Chrome", row({ "unwind op/mutex": 1.02 }))]);
     expect(f.claim).toBeUndefined();
@@ -68,9 +62,16 @@ describe("locks findings", () => {
       "With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome (Figure 3).",
     );
   });
+  it("reports claims that wait on a second capture, or that it did not reproduce", () => {
+    const r = row({ "abort op/mutex": 3, "unwind op/mutex": 3, "atomics op/mutex": 3 });
+    expect(editionFindings([{ engine: "Chrome", machine: m4, run: r, replicates: [] }]).pending.map((c) => c.key)).toEqual(["locks.mutex-refcell-op:abort:slower"]);
+    const { findings, pending } = editionFindings([{ engine: "Chrome", machine: m4, run: r, replicates: [row()] }]);
+    expect(findings[0].claim).toBeUndefined();
+    expect(pending.map((c) => c.key)).toEqual(["locks.mutex-refcell-op:abort:slower"]);
+  });
   it("gates every setting of an edition", () => {
     const r = row({ "abort op/mutex": 3, "unwind op/mutex": 3, "atomics op/mutex": 6 });
-    const [lock, unwind, atomics] = editionFindings([{ engine: "Chrome", machine: m4, run: r, replicates: [r] }]);
+    const [lock, unwind, atomics] = editionFindings([{ engine: "Chrome", machine: m4, run: r, replicates: [r] }]).findings;
     expect(lock.claim).toBeDefined();
     expect(unwind.claim).toBeUndefined();
     expect(atomics.claim?.text).toBe("With +atomics, one Mutex lock took 2× as long as in the default build in Chrome (Figure 3).");
@@ -99,7 +100,7 @@ describe("locks capture validation", () => {
   it("accepts a full run and rejects short series or differing digests", () => {
     expect(validateEdition(edition(row()))).toEqual([]);
     expect(validateEdition(edition(row({}, 19)))).toContain("raw.samples[abort][op/plain]: expected 20 positive samples");
-    expect(validateEdition(edition({ ...row(), checksumsMatch: false }))).toEqual(["raw checksums differ between builds"]);
+    expect(validateEdition(edition({ ...row(), checksumsMatch: false as never }))).toEqual(["raw checksums differ between builds"]);
     expect(validateEdition(edition({ ...row(), variants: ["unwind"] }))).toEqual(["raw must be a locks run that measured the abort build"]);
     const short = row();
     const { "op/plain": _dropped, ...rest } = short.samples.unwind!;

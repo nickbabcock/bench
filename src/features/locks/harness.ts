@@ -19,8 +19,8 @@ export type ResultRow = {
   calls: Record<WorkloadId, number>;
   /** ns per operation, one per round, per build and workload. */
   samples: Partial<Record<Variant, Record<WorkloadId, number[]>>>;
-  /** Every build computed the same digest for every workload. */
-  checksumsMatch: boolean;
+  /** Every build computed the same digest for every workload. Always true: a run whose builds disagree stops before timing. */
+  checksumsMatch: true;
   context?: RunContext;
   startedAt: number;
   endedAt: number;
@@ -38,8 +38,8 @@ type Cell = { variant: Variant; workload: WorkloadId };
 
 /**
  * Run every workload in every build this browser supports. A round times
- * each (build, workload) cell once, starting one cell later than the round
- * before, so drift and ordering spread over all cells. Every cell runs in
+ * each (build, workload) cell once. Each round starts one cell later than
+ * the round before, so drift and order spread over all cells. Every cell runs in
  * every round, so any two cells pair round by round.
  */
 export async function runLocks(

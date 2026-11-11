@@ -32,6 +32,7 @@ import {
   Section,
   sourceLine,
   THIS_MACHINE,
+  unreproducedNote,
   useDataset,
   useSupport,
 } from "@/components/release";
@@ -82,7 +83,7 @@ const Cited = ({ text }: { text: string }) => <CitedText text={text} />;
 const noPoints = (pending: number, replicated: boolean) =>
   pending === 0
     ? "Neither time nor peak memory differed beyond the threshold between wasm64 and wasm32, so there are no main points."
-    : `${plural(pending, "finding")} cleared the threshold in this capture, but ${replicated ? `${pending === 1 ? "did" : "do"} not hold in the second capture` : `no second independent capture exists yet to reproduce ${pending === 1 ? "it" : "them"}`}, so the table reports ${pending === 1 ? "it" : "them"} instead.`;
+    : unreproducedNote(pending, replicated);
 
 /** What to try after an error, by its kind. */
 const recovery = (error: string) =>

@@ -3,17 +3,17 @@ import { clsx } from "clsx";
 import { useEffect, useRef } from "react";
 import { GithubIcon, MoonIcon, SunIcon, SystemThemeIcon } from "@/components/icons";
 import { wrapClass } from "@/components/release/ReleaseHeader";
-import { type Benchmark, benchmarkNames, useActiveRun } from "@/lib/runRegistry";
+import { type Benchmark, benchmarkNames, benchmarkRoutes, useActiveRun } from "@/lib/runRegistry";
 import { setTheme, type Theme, useTheme } from "@/lib/theme";
 
 const REPO = "https://github.com/nickbabcock/bench";
 
 const navigation: { name: string; to: string; run?: Benchmark }[] = [
-  { name: "Compression", to: "/compression", run: "compression" },
-  { name: "Allocation", to: "/allocation", run: "allocation" },
-  { name: "Memory64", to: "/memory64", run: "memory64" },
-  { name: "Build settings", to: "/build", run: "build" },
-  { name: "RefCell vs Mutex", to: "/locks", run: "locks" },
+  { name: "Compression", to: benchmarkRoutes.compression, run: "compression" },
+  { name: "Allocation", to: benchmarkRoutes.allocation, run: "allocation" },
+  { name: "Memory64", to: benchmarkRoutes.memory64, run: "memory64" },
+  { name: "Build settings", to: benchmarkRoutes.build, run: "build" },
+  { name: "RefCell vs Mutex", to: benchmarkRoutes.locks, run: "locks" },
   { name: "Method", to: "/method" },
 ];
 

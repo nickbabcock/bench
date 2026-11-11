@@ -41,9 +41,6 @@ export const effectWords = (e: PairedEffect) =>
 
 /** One line on a finished run, for the live region. */
 export const runClaim = (row: ResultRow) => {
-  if (!row.checksumsMatch) {
-    return "Invalid comparison: the builds computed different answers.";
-  }
   const e = comparisonEffect(row, lockComparisons("abort")[0])!;
   if (isExploratory(e.n)) {
     return "One sample per build, so no verdict.";

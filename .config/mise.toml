@@ -65,12 +65,14 @@ run = [
 # RefCell against Mutex: one crate built three times on the pinned nightly,
 # each with std built from source so the panic strategy and the atomics
 # feature are the only differences. No wasm-opt: Binaryen inlines and folds
-# by itself, which would hide what LLVM emitted for each lock. A separate
-# target dir per build keeps the RUSTFLAGS of one from rebuilding another.
+# by itself, which would hide what LLVM emitted for each lock. The abort build
+# has the same std as memory64, so it uses memory64's target dir and std
+# compiles once for both. The other two have their own target dirs, so their
+# RUSTFLAGS do not cause a rebuild of another build.
 [tasks."build:locks"]
 depends = ["build:locks:abort", "build:locks:unwind", "build:locks:atomics"]
 run = [
-    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_abort ./target/locks-abort/wasm32-unknown-unknown/release/lockbench.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_abort ./target/nightly/wasm32-unknown-unknown/release/lockbench.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_unwind ./target/locks-unwind/wasm32-unknown-unknown/release/lockbench.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_atomics ./target/locks-atomics/wasm32-unknown-unknown/release/lockbench.wasm",
 ]
@@ -80,7 +82,7 @@ run = [
 [tasks."build:locks:abort"]
 hide = true
 env = { RUSTFLAGS = "" }
-run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-abort"
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/nightly"
 
 # The shipped std for wasm is built for abort, so unwinding needs std rebuilt.
 # LLVM emits the standard exception handling instructions (exnref).

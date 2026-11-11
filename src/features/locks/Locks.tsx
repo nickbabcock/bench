@@ -31,10 +31,11 @@ import {
   runDate,
   Section,
   THIS_MACHINE,
+  unreproducedNote,
   useDataset,
 } from "@/components/release";
 import { MIN_SAMPLE_MS } from "@/lib/bench";
-import { build, buildSummary, hardware } from "@/lib/build";
+import { build, hardware, toolchainSummary } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
 import { listText, machineLabel, type MachineRef } from "@/lib/findings";
 import { plural } from "@/lib/format";
@@ -62,7 +63,7 @@ const effectCell = (e: PairedEffect | undefined): DotRangeCell | undefined =>
   e && Number.isFinite(e.median) ? { value: e.median, range: e.ci ? [e.ci.lo, e.ci.hi] : undefined, faint: [e.min, e.max], highlight: isPairedClaim(e.claim) } : undefined;
 
 /** How the lock modules are built: the nightly, std from source, their own target features and no wasm-opt. */
-const locksBuild = () => buildSummary(true, true);
+const locksBuild = () => `${toolchainSummary(true)}, no wasm-opt`;
 
 /** The workloads a run measured in every build: a capture from an older page can lack a newer workload. */
 const measuredWorkloads = (row: ResultRow) => workloads.filter((w) => row.variants.every((v) => samplesOf(row, v, w.id)?.length));
@@ -73,7 +74,7 @@ const noPoints = (mine: boolean, pending: number, replicated: boolean) =>
     ? "No comparison cleared the threshold in this run, so there are no main points."
     : pending === 0
       ? "No comparison cleared the threshold, so there are no main points."
-      : `${plural(pending, "finding")} cleared the threshold in this capture, but ${replicated ? `${pending === 1 ? "did" : "do"} not hold in the second capture` : `no second independent capture exists yet to reproduce ${pending === 1 ? "it" : "them"}`}, so the table reports ${pending === 1 ? "it" : "them"} instead.`;
+      : unreproducedNote(pending, replicated);
 
 /** What to try after an error, by its kind. */
 const recovery = (error: string) => (/worker|import|fetch|load|compile|instantiate/i.test(error) ? "a build or its worker failed to load" : undefined);
@@ -102,17 +103,14 @@ export const Locks = () => {
   }
 
   const cellOf = (e: Entry, row: ResultRow): LocksCell => ({ engine: e.short, machine: e.machine, input: null, row });
-  const findings = showMine
-    ? gatedFindings(
-        entries.map((e) => cellOf(e, e.row)),
-        undefined,
-      )
-    : editionFindings(settings.map((s) => ({ engine: s.browser, machine: s.machine, run: s.run, replicates: s.replicates })));
+  // Main points read every setting of the edition; the figures show one engine, so their titles read that engine alone.
+  const edition = showMine ? undefined : editionFindings(settings.map((s) => ({ engine: s.browser, machine: s.machine, run: s.run, replicates: s.replicates })));
+  const findings = edition?.findings ?? gatedFindings([cellOf(entry, entry.row)], undefined);
+  const figureFindings = showMine ? findings : gatedFindings([cellOf(entry, entry.row)], entry.replicates.map((r) => [cellOf(entry, r)]));
   const points: MainPoint[] = findings.filter((f) => f.claim).map((f) => ({ id: f.claim!.key, text: <Cited text={f.claim!.text} /> }));
-  // Claims this capture makes that a second capture has not reproduced: table only.
-  const pending = showMine ? [] : findings.flatMap((f) => f.tableOnly);
+  // Claims the first captures make that the gate holds back: table only.
+  const pending = edition?.pending ?? [];
   const row = entry.row;
-  const valid = entries.every((e) => e.row.checksumsMatch);
   const n = samplesOf(row, "abort", "op/plain")?.length ?? 0;
   const measured = variants.filter((v) => row.variants.includes(v));
   const facets = measured.map((v) => ({ id: v, title: variantInfo[v].label }));
@@ -289,7 +287,7 @@ export const Locks = () => {
           <MainPoints
             tone={tone}
             points={points}
-            empty={valid ? noPoints(showMine, pending.length, entries.some((e) => e.replicates.length > 0)) : "The builds computed different answers, so this run makes no comparison."}
+            empty={noPoints(showMine, pending.length, entries.some((e) => e.replicates.length > 0))}
           />
         </Section>
 
@@ -323,7 +321,7 @@ export const Locks = () => {
         <Section id="locks">
           <Figure
             n={2}
-            title={figureTitle(findings, 2)}
+            title={figureTitle(figureFindings, 2)}
             subtitle={`Time ratios paired by round, in ${entry.engine}: median, 95% CI and min–max of ${plural(n, "round")}. Above 1, the first takes longer.`}
             legend={ratioLegend}
           >
@@ -345,7 +343,7 @@ export const Locks = () => {
           {others.length ? (
             <Figure
               n={3}
-              title={figureTitle(findings, 3)}
+              title={figureTitle(figureFindings, 3)}
               subtitle={`Each workload's time in a build ÷ its time in the default (panic=abort) build, paired by round, in ${entry.engine}. RefCell is the control.`}
               legend={ratioLegend}
             >
@@ -454,13 +452,11 @@ const LocksMeasure = ({ refRun, mine, onShowRun }: { refRun?: ResultRow; mine?: 
     ? { kind: "failed", message: [session.error, recovery(session.error)].filter(Boolean).join("; ") }
     : session.cancelled
       ? { kind: "cancelled", measured: 0, total: variants.length, unit: "builds", message: "Cancelled. A run is kept only when every round finishes, so any rounds measured were discarded; the results shown are unchanged." }
-      : latest && !latest.checksumsMatch
-        ? { kind: "mismatch", what: "the builds", message: "The builds computed different digests, so this run is not a valid comparison." }
-        : latest && latest.variants.length < variants.length
-          ? { kind: "partial", measured: latest.variants.length, total: variants.length, unit: "builds", reason: variants.filter((v) => latest.skipped[v]).map((v) => `${variantInfo[v].label} ${latest.skipped[v]}.`).join(" ") }
-          : latest
-            ? { kind: "done", measured: latest.variants.length, unit: "builds" }
-            : undefined;
+      : latest && latest.variants.length < variants.length
+        ? { kind: "partial", measured: latest.variants.length, total: variants.length, unit: "builds", reason: variants.filter((v) => latest.skipped[v]).map((v) => `${variantInfo[v].label} ${latest.skipped[v]}.`).join(" ") }
+        : latest
+          ? { kind: "done", measured: latest.variants.length, unit: "builds" }
+          : undefined;
   const PREP = 3;
   const fraction = progress ? (progress.prep * PREP + progress.completed) / (PREP + progress.total) : 0;
   return (

@@ -26,7 +26,7 @@ const DEFAULT_ROUNDS = 10;
 export const MIN_ROUNDS = MIN_PAIRED_ROUNDS;
 export const MAX_ROUNDS = 100;
 
-/** RefCell against Mutex state survives tab switches; a run keeps going meanwhile. */
+/** RefCell against Mutex state survives tab switches; a run continues meanwhile. */
 export const useLocksSession = create<Session>()(() => ({
   sampleCount: DEFAULT_ROUNDS,
   results: [],

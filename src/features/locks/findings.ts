@@ -3,7 +3,7 @@
  * every round, so each question is a paired time ratio with the site's
  * claim rule, gated across independent captures setting by setting.
  */
-import { ask, askReproduced, replicatesOf, type Cell, type FigureQuestion, type Finding, reproducedIn, scopeOf, withinBudget } from "@/lib/findings";
+import { ask, askReproduced, replicatesOf, type Cell, type Claim, type FigureQuestion, type Finding, reproducedIn, scopeOf, withinBudget } from "@/lib/findings";
 import { geomean, isPairedClaim } from "@/lib/stats";
 import { comparisonEffect, ratioWords } from "./claims";
 import type { ResultRow } from "./harness";
@@ -31,9 +31,6 @@ function comparisonQuestion(
     neutral,
     answer: (cells, replicates) => {
       const kindOf = reproducedIn(replicates, (c: LocksCell) => {
-        if (!c.row.checksumsMatch) {
-          return undefined;
-        }
         const e = comparisonEffect(c.row, comparison);
         return e && isPairedClaim(e.claim) ? e.claim : undefined;
       });
@@ -44,7 +41,7 @@ function comparisonQuestion(
         return {};
       }
       const r = geomean(held.map((c) => comparisonEffect(c.row, comparison)!.median));
-      const measured = cells.filter((c) => c.row.checksumsMatch && comparisonEffect(c.row, comparison) !== undefined);
+      const measured = cells.filter((c) => comparisonEffect(c.row, comparison) !== undefined);
       const scope = scopeOf(held, measured);
       const words = ratioWords(r);
       const title = sentence(words) + (scope ? ` ${scope}` : "");
@@ -105,14 +102,19 @@ export function gatedFindings(cells: readonly LocksCell[], replicates: readonly 
 /** One reference setting (an engine on a machine) with its independent repeats. */
 export type EditionSetting = { engine: string; machine: Cell["machine"]; run: ResultRow; replicates: readonly ResultRow[] };
 
-/** The main points' findings over every setting of the edition, so no switch changes them. */
-export function editionFindings(settings: readonly EditionSetting[]): Finding[] {
+/**
+ * The main points' findings over every setting of the edition, so no switch
+ * changes them, and `pending`: the claims that the first captures make but
+ * that the gate holds back (no second capture yet, or it did not hold).
+ * The table reports those.
+ */
+export function editionFindings(settings: readonly EditionSetting[]): { findings: Finding[]; pending: Claim[] } {
   const sorted = [...settings].sort((a, b) => a.machine.id.localeCompare(b.machine.id) || a.engine.localeCompare(b.engine));
   const cellOf = (s: EditionSetting, row: ResultRow): LocksCell => ({ engine: s.engine, machine: s.machine, input: null, row });
-  return gatedFindings(
-    sorted.map((s) => cellOf(s, s.run)),
-    replicatesOf(sorted, (s) => s.replicates, cellOf),
-  );
+  const cells = sorted.map((s) => cellOf(s, s.run));
+  const findings = gatedFindings(cells, replicatesOf(sorted, (s) => s.replicates, cellOf));
+  const pending = locksQuestions.flatMap((q, i) => (findings[i].claim ? [] : (ask(q, cells).claim ?? [])));
+  return { findings, pending };
 }
 
 /** A figure's title from its findings: the first claim, else the neutral title. */
