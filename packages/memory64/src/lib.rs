@@ -8,8 +8,10 @@
 
 use wasm_bindgen::prelude::*;
 
-pub mod ecs;
+pub mod editor;
 pub mod rng;
+
+use std::cell::RefCell;
 
 const SEED: u64 = 0x5EED_0F3A_5A00;
 
@@ -19,23 +21,32 @@ pub fn pointer_width() -> u32 {
     usize::BITS
 }
 
-/// bevy_ecs arena skirmish simulation.
+/// bevy_ecs editor session: marquee select, drag, release, undo and redo
+/// over a document of nested groups, shapes and connectors.
 #[wasm_bindgen]
-pub struct EcsSimulation {
-    units: u32,
-    ticks: u32,
+pub struct EditorSession {
+    editor: RefCell<editor::Editor>,
 }
 
 #[wasm_bindgen]
-impl EcsSimulation {
+impl EditorSession {
+    /// Build the document (untimed).
     #[wasm_bindgen(constructor)]
-    pub fn new(units: u32, ticks: u32) -> EcsSimulation {
-        EcsSimulation { units, ticks }
+    pub fn new(entities: u32) -> EditorSession {
+        EditorSession {
+            editor: RefCell::new(editor::Editor::new(entities, SEED)),
+        }
     }
 
-    /// Spawn a fresh world, run every tick, and return a checksum of the
-    /// final world state.
+    /// Replay one scripted session and return a checksum of the edited
+    /// document. The document is reverted at the end, so every call does
+    /// identical work.
     pub fn run(&self) -> f64 {
-        ecs::simulate(self.units, self.ticks, SEED)
+        self.editor.borrow_mut().run()
+    }
+
+    /// Frames in one session.
+    pub fn frames() -> u32 {
+        editor::FRAMES
     }
 }

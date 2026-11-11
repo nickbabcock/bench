@@ -45,6 +45,7 @@ run = [
     "wasm-opt -Os ./src/wasm/zstd_read_bg.wasm -o ./src/wasm/zstd_read_bg.wasm",
     "wasm-opt -Os ./src/wasm/zstd_write_bg.wasm -o ./src/wasm/zstd_write_bg.wasm",
     "wasm-opt -Os ./src/wasm/zune_bg.wasm -o ./src/wasm/zune_bg.wasm",
+    "node packages/alloc-workload/sizes.mjs",
     "mise run build:memory64",
 ]
 
@@ -59,6 +60,11 @@ run = [
     "wasm-opt -Os ./src/wasm/memory64_wasm32_bg.wasm -o ./src/wasm/memory64_wasm32_bg.wasm",
     "wasm-opt -Os ./src/wasm/memory64_wasm64_bg.wasm -o ./src/wasm/memory64_wasm64_bg.wasm",
 ]
+
+# The build-settings page: a few crates rebuilt with SIMD off/on and wasm-opt
+# none/-Os/-O3, into src/wasm/variants/ with a manifest per variant.
+[tasks."build:variants"]
+run = "node scripts/build-variants.ts"
 
 [tasks."build:profiling"]
 run = [
@@ -80,11 +86,31 @@ run = [
     "mise run build:memory64",
 ]
 
+# The compression benchmark's inputs: a Silesia corpus subset repacked as one
+# zip of zstd entries (public/corpus/silesia.zip, gitignored; the download is
+# cached in .cache/corpus/), and the wasm that reads it in the browser. The
+# packer is a native tool in its own workspace, so it builds for the host.
+[tasks."build:corpus"]
+run = [
+    "cargo run --locked --release --manifest-path xtask/Cargo.toml --target host-tuple -- corpus",
+    "cargo build --target wasm32-unknown-unknown --release -p corpus",
+    "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/corpus.wasm",
+    "wasm-opt -Os ./src/wasm/corpus_bg.wasm -o ./src/wasm/corpus_bg.wasm",
+]
+
 [tasks."build"]
 run = [
     "mise run build:wasm",
+    "mise run build:variants",
+    "mise run build:corpus",
     "npm run build",
 ]
+
+# Reference captures: builds the site, serves it cross-origin isolated and
+# runs every benchmark in Chrome, Firefox and (on macOS) Safari, writing
+# src/data/editions/. Pass options after `--`, e.g. `--machine m4pro-arm64`.
+[tasks."capture"]
+run = "node scripts/capture.mjs"
 
 [tasks."dev"]
 run = "npm run dev"

@@ -1,45 +1,24 @@
 import { clsx } from "clsx";
 
-export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "primary" | "outline";
-  size?: "sm" | "md" | "lg";
+export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+  /** primary: the one action (Run), teal; secondary: hairline outline (Cancel, exports); quiet: a text link. */
+  variant?: "primary" | "secondary" | "quiet";
+  size?: "sm" | "md";
 }
 
-export const Button = ({
-  className,
-  children,
-  variant = "primary",
-  size = "md",
-  ...props
-}: ButtonProps) => {
-  const baseClasses =
-    "inline-flex items-center justify-center font-medium rounded-lg transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 disabled:opacity-40 disabled:cursor-not-allowed";
-
-  const variantClasses = {
-    primary:
-      "bg-blue-600 text-white hover:bg-blue-700 focus-visible:outline-blue-600 active:bg-blue-800",
-    outline:
-      "border-2 border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus-visible:outline-gray-600 active:bg-gray-100 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-600 dark:hover:bg-gray-700",
-  };
-
-  const sizeClasses = {
-    sm: "px-3 py-1.5 text-sm",
-    md: "px-4 py-2 text-base",
-    lg: "px-6 py-3 text-lg",
-  };
-
-  return (
-    <button
-      className={clsx(
-        baseClasses,
-        variantClasses[variant],
-        sizeClasses[size],
-        className,
-      )}
-      {...props}
-    >
-      {children}
-    </button>
+export const buttonClass = ({ variant = "primary", size = "md" }: Pick<ButtonProps, "variant" | "size"> = {}) =>
+  clsx(
+    "inline-flex shrink-0 cursor-pointer items-center justify-center gap-2 rounded-[4px] font-semibold whitespace-nowrap transition-[background-color,border-color,color,filter] duration-150 ease-out select-none disabled:cursor-not-allowed [&_svg]:shrink-0",
+    size === "md" && "h-10 px-[18px] text-[0.9375rem]",
+    size === "sm" && "h-8 px-3 text-sm",
+    variant === "primary" &&
+      "border border-accent bg-accent text-on-accent hover:brightness-110 active:brightness-95 disabled:border-rule disabled:bg-band disabled:text-ink-3 disabled:hover:brightness-100",
+    variant === "secondary" &&
+      "border border-ink-3 bg-transparent text-ink hover:border-ink hover:bg-hl disabled:border-rule disabled:text-ink-3 disabled:hover:bg-transparent",
+    variant === "quiet" &&
+      "px-1 font-normal text-accent underline decoration-1 underline-offset-[3px] hover:decoration-2 disabled:text-ink-3 disabled:no-underline",
   );
-};
+
+export const Button = ({ className, variant, size, type = "button", ...props }: ButtonProps) => (
+  <button type={type} className={clsx(buttonClass({ variant, size }), className)} {...props} />
+);

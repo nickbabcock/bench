@@ -1,2 +1,2 @@
 export * from "./GithubIcon";
-export * from "./DocumentIcon";
+export * from "./Icons";

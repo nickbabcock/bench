@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BenchmarkLayout } from "@/components/navigation/BenchmarkLayout";
+import { SiteShell } from "@/components/navigation/SiteShell";
 import { Compression } from "@/features/compression/Compression";
 
 export const Route = createFileRoute("/compression")({
   head: () => ({
-    meta: [{ title: "Compression Benchmarks | WASM Benchmarks" }],
+    meta: [{ title: "Compression codecs in WebAssembly · WASM Bench" }],
   }),
   component: CompressionPage,
 });
 
 function CompressionPage() {
   return (
-    <BenchmarkLayout title="Compression Benchmarks">
+    <SiteShell>
       <Compression />
-    </BenchmarkLayout>
+    </SiteShell>
   );
 }

@@ -12,6 +12,7 @@ checksum = "320119579fcad9c21884f5c4861d16174d0e06250625266f50fe6898340abefa"
 name = "alloc"
 version = "0.1.0"
 dependencies = [
+ "alloc-workload",
  "wasm-bindgen",
 ]
 
@@ -19,6 +20,7 @@ dependencies = [
 name = "alloc-bump-scope"
 version = "0.1.0"
 dependencies = [
+ "alloc-workload",
  "bump-scope",
  "wasm-bindgen",
 ]
@@ -27,6 +29,7 @@ dependencies = [
 name = "alloc-bumpalo"
 version = "0.1.0"
 dependencies = [
+ "alloc-workload",
  "bumpalo",
  "wasm-bindgen",
 ]
@@ -50,8 +53,16 @@ dependencies = [
 name = "alloc-talc"
 version = "0.1.0"
 dependencies = [
+ "alloc-workload",
  "talc",
  "wasm-bindgen",
+]
+
+[[package]]
+name = "alloc-workload"
+version = "0.1.0"
+dependencies = [
+ "allocator-api2 0.2.21",
 ]
 
 [[package]]
@@ -329,6 +340,9 @@ name = "bumpalo"
 version = "3.20.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "72f5acc6cb2ba439de613abc23857ec3d78374d8ed5ac84e9d11336e87da8649"
+dependencies = [
+ "allocator-api2 0.2.21",
+]
 
 [[package]]
 name = "bytemuck"
@@ -391,6 +405,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "633458d4ef8c78b72454de2d54fd6ab2e60f9e02be22f3c6104cdc8a4e0fceb9"
 dependencies = [
  "unicode-segmentation",
+]
+
+[[package]]
+name = "corpus"
+version = "0.1.0"
+dependencies = [
+ "rawzip",
+ "ruzstd",
+ "wasm-bindgen",
 ]
 
 [[package]]
@@ -807,6 +830,12 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "20675572f6f24e9e76ef639bc5552774ed45f1c30e2951e1e99c59888861c539"
 
 [[package]]
+name = "rawzip"
+version = "0.5.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ac9999039f74cd73c03158cddfe4362991703c74efe5ce5c8073026f80a5e48c"
+
+[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -832,6 +861,12 @@ name = "rustversion"
 version = "1.0.23"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
+
+[[package]]
+name = "ruzstd"
+version = "0.9.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "69e4ce4a039f42bf25920b95667e4d789e98749ab11bbb8d2c2936f788421bb5"
 
 [[package]]
 name = "scopeguard"
@@ -1281,6 +1316,7 @@ version = "0.1.0"
 dependencies = [
  "wasm-bindgen",
  "zstd",
+ "zstd-sys",
 ]
 
 [[package]]

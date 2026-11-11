@@ -1,0 +1,13 @@
+[package]
+name = "corpus"
+version = "0.1.0"
+authors = ["Nick Babcock <nbabcock19@hotmail.com>"]
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+rawzip = "0.5.2"
+ruzstd = { version = "0.9.1", default-features = false, features = ["std"] }
+wasm-bindgen.workspace = true

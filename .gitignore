@@ -41,3 +41,7 @@ yarn-error.log*
 
 src/wasm/
 .vscode/settings.json
+
+# Silesia corpus: the download cache and the archive built from it
+/.cache/
+/public/corpus/
