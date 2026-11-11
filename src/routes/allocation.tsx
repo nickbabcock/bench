@@ -1,18 +1,18 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { BenchmarkLayout } from "@/components/navigation/BenchmarkLayout";
+import { SiteShell } from "@/components/navigation/SiteShell";
 import { Allocation } from "@/features/allocation";
 
 export const Route = createFileRoute("/allocation")({
   head: () => ({
-    meta: [{ title: "Allocation Benchmarks | WASM Benchmarks" }],
+    meta: [{ title: "Rust allocators · WASM Bench" }],
   }),
   component: AllocationPage,
 });
 
 function AllocationPage() {
   return (
-    <BenchmarkLayout title="Allocation Benchmarks">
+    <SiteShell>
       <Allocation />
-    </BenchmarkLayout>
+    </SiteShell>
   );
 }

@@ -45,13 +45,15 @@ function create(
   params: WorkloadParams,
 ): Benchmark {
   switch (workload) {
-    case "ecs":
-      return new bindings.EcsSimulation(params.units, params.ticks);
+    case "editor":
+      return new bindings.EditorSession(params.entities);
   }
 }
 
 export type PrepareResult = {
   pointerWidth: number;
+  /** Frames in one session. */
+  frames: number;
 };
 
 /** Instantiate the module and prepare the workload's inputs (untimed). */
@@ -63,7 +65,7 @@ export async function prepare(
   const { bindings } = await load(variant);
   benchmarks.get(variant)?.free();
   benchmarks.set(variant, create(bindings, workload, params));
-  return { pointerWidth: bindings.pointer_width() };
+  return { pointerWidth: bindings.pointer_width(), frames: bindings.EditorSession.frames() };
 }
 
 export type RunResult = {

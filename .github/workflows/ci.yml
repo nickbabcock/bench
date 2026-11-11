@@ -23,9 +23,16 @@ jobs:
     - run: rustup target add wasm32-unknown-unknown
     - name: Npm Install
       run: npm ci
+    # The Silesia corpus download behind `mise run build:corpus`; the key is
+    # the SHA-256 pinned in xtask/src/main.rs.
+    - uses: actions/cache@v6
+      with:
+        path: .cache/corpus
+        key: silesia-0626e25f45c0ffb5dc801f13b7c82a3b75743ba07e3a71835a41e3d9f63c77af
     - name: Build app
       run: mise run build
     - run: npm run lint
+    - run: npm test
 
   devcontainer:
     runs-on: ubuntu-latest

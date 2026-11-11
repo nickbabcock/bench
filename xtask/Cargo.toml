@@ -1,0 +1,17 @@
+# Native build tooling. Its own workspace, so the wasm build (`cargo build
+# --workspace`, which targets wasm32 by default) never sees it. Run it for the
+# host: `cargo run --manifest-path xtask/Cargo.toml --target host-tuple`.
+[package]
+name = "xtask"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+[workspace]
+
+[dependencies]
+flate2 = "1.1"
+rawzip = "0.5.2"
+sha2 = "0.11"
+ureq = "3.3"
+zstd = "0.14.3"

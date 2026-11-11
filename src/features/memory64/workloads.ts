@@ -11,24 +11,20 @@ export type WorkloadParam = {
 
 export type WorkloadDefinition = {
   name: string;
-  description: string;
   params: readonly WorkloadParam[];
 };
 
 export const workloads = {
-  ecs: {
-    name: "bevy_ecs simulation",
-    description:
-      "Four teams of units wander an arena, find the nearest enemy through a spatial grid, chase it, and fire homing projectiles. Projectiles can set targets on fire. Dead units respawn right away, so the unit count stays constant.",
+  editor: {
+    name: "bevy_ecs editor session",
     params: [
       {
-        key: "units",
-        label: "Units",
-        defaultValue: 5_000,
-        min: 1,
+        key: "entities",
+        label: "Entities",
+        defaultValue: 100_000,
+        min: 1_000,
         max: 1_000_000,
       },
-      { key: "ticks", label: "Ticks", defaultValue: 300, min: 1, max: 100_000 },
     ],
   },
 } as const satisfies Record<string, WorkloadDefinition>;

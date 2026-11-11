@@ -1,13 +1,337 @@
 @import "tailwindcss";
 
-a.link {
-  @apply font-medium text-gray-700 underline hover:text-gray-800 dark:text-gray-300 dark:hover:text-gray-200;
+/*
+ * Statistical release. White ground, near-black ink, one accent (teal)
+ * for the highlighted series, the current place and links; everything
+ * else in a figure is grey. "This machine" (orange) marks only the
+ * visitor's own results. Danger is only for a failed round trip or
+ * checksum. The release band is the one filled region; elsewhere rules,
+ * not cards.
+ *
+ * Colours are --c-* custom properties, swapped for dark below, and
+ * exposed to Tailwind as colours of the same name (bg-tint, fill-accent,
+ * stroke-dot, text-ink-3 …).
+ *
+ * Validated (dataviz validate_palette.js): accent and mine pass the
+ * lightness band, chroma floor (accent raised from #1f5f73 to C 0.10),
+ * CVD and normal-vision separation, and 3:1 against the ground in both
+ * themes. Text contrast (WCAG): accent 5.9:1 on bg and 5.0:1 on tint;
+ * ink-3 5.0:1 on bg; tint-ink-3 5.3:1 on tint; dark ink-3 6.9:1.
+ */
+:root {
+  color-scheme: light;
+  /* Ground and ink. */
+  --c-bg: #ffffff;
+  --c-ink: #222222;
+  --c-ink-2: #4a4a4a;
+  --c-ink-3: #6f6f6f;
+  --c-rule: #d4d4d4;
+  --c-grid: #e8e8e8;
+  /* The release band and the ink set on it. */
+  --c-tint: #e8eef0;
+  --c-tint-ink-2: #3f4a4f;
+  --c-tint-ink-3: #56636a;
+  --c-tint-rule: #c9d4d8;
+  /* The one accent. */
+  --c-accent: #056c92;
+  --c-on-accent: #ffffff;
+  /* This machine: the visitor's own results, nothing else. */
+  --c-mine: #c2571a;
+  /* Unhighlighted marks: points, whiskers, faint ranges. */
+  --c-dot: #8c8c8c;
+  --c-dot-soft: #bdbdbd;
+  /* Quiet fills: the ±3% threshold band, inline code. */
+  --c-band: #efefef;
+  /* A linked row or point under the pointer. */
+  --c-hl: #f1f5f7;
+  --c-danger: #b3261e;
+  /* Inputs. */
+  --c-field: #ffffff;
 }
 
-body {
-  @apply bg-zinc-100 text-slate-700 dark:bg-zinc-800 dark:text-slate-100;
+/*
+ * Dark: chosen in the footer (data-theme="dark", set before first paint by
+ * public/theme.js), or following the system unless light was chosen. One
+ * variant drives both the tokens below and any `dark:` utility.
+ */
+@custom-variant dark {
+  &:where([data-theme="dark"], [data-theme="dark"] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:not(:where([data-theme="light"], [data-theme="light"] *)) {
+      @slot;
+    }
+  }
 }
 
-.btn {
-  @apply inline-flex cursor-default justify-center rounded-md px-4 py-1 text-base font-semibold tracking-tight shadow-xs focus:outline-hidden focus-visible:outline-2 focus-visible:outline-offset-2;
+:root {
+  @variant dark {
+    color-scheme: dark;
+    --c-bg: #15191b;
+    --c-ink: #e6e9ea;
+    --c-ink-2: #bcc3c6;
+    --c-ink-3: #9aa4a8;
+    --c-rule: #343c40;
+    --c-grid: #252c2f;
+    --c-tint: #1e2629;
+    --c-tint-ink-2: #c2cacd;
+    --c-tint-ink-3: #99a4a8;
+    --c-tint-rule: #36424a;
+    --c-accent: #2a9dbd;
+    --c-on-accent: #0c1214;
+    --c-mine: #e06f30;
+    /* Stronger than a straight inversion, so grey marks and small labels
+       hold up on the dark ground (5.6:1). */
+    --c-dot: #87929a;
+    --c-dot-soft: #56616a;
+    --c-band: #20272a;
+    --c-hl: #1d272b;
+    --c-danger: #f2665c;
+    --c-field: #1a1f22;
+  }
+}
+
+@theme inline {
+  --font-sans: "Source Sans 3 Variable", "Source Sans 3", ui-sans-serif, system-ui, sans-serif;
+  /* Only for flags, file names and hashes. */
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, monospace;
+
+  /*
+   * Type scale. Weights are 400, 600 and 700 only.
+   *   text-h1   38/1.15 bold     page title (text-h1-sm, 29px, under 640px)
+   *   text-h2   24/1.25 bold     numbered section heading
+   *   text-fig  19/1.3  bold     figure title
+   *   text-base 16/1.6           body
+   *   text-sm   14/1.5           secondary prose, tables
+   *   text-cap  13/1.45          captions, Source/Notes, axis titles
+   *   text-xs   12/1.4           tick labels: the floor
+   */
+  --text-h1: 2.375rem;
+  --text-h1--line-height: 1.15;
+  --text-h1-sm: 1.8125rem;
+  --text-h1-sm--line-height: 1.15;
+  --text-h2: 1.5rem;
+  --text-h2--line-height: 1.25;
+  --text-fig: 1.1875rem;
+  --text-fig--line-height: 1.3;
+  --text-base: 1rem;
+  --text-base--line-height: 1.6;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.5;
+  --text-cap: 0.8125rem;
+  --text-cap--line-height: 1.45;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.4;
+
+  /* Measures: prose, and the body column figures and tables may fill. */
+  --container-measure: 68ch;
+  --container-wide: 70rem;
+  --container-page: 78rem;
+
+  --color-bg: var(--c-bg);
+  --color-ink: var(--c-ink);
+  --color-ink-2: var(--c-ink-2);
+  --color-ink-3: var(--c-ink-3);
+  --color-rule: var(--c-rule);
+  --color-grid: var(--c-grid);
+  --color-tint: var(--c-tint);
+  --color-tint-ink-2: var(--c-tint-ink-2);
+  --color-tint-ink-3: var(--c-tint-ink-3);
+  --color-tint-rule: var(--c-tint-rule);
+  --color-accent: var(--c-accent);
+  --color-on-accent: var(--c-on-accent);
+  --color-mine: var(--c-mine);
+  --color-dot: var(--c-dot);
+  --color-dot-soft: var(--c-dot-soft);
+  --color-band: var(--c-band);
+  --color-hl: var(--c-hl);
+  --color-danger: var(--c-danger);
+  --color-field: var(--c-field);
+
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    interpolate-size: allow-keywords;
+    scrollbar-color: var(--c-dot-soft) var(--c-bg);
+    scroll-padding-top: 1rem;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    html {
+      scroll-behavior: smooth;
+    }
+  }
+
+  body {
+    min-height: 100dvh;
+    background: var(--c-bg);
+    color: var(--c-ink);
+    font-family: var(--font-sans);
+    font-size: var(--text-base);
+    line-height: var(--text-base--line-height);
+    /* Tabular figures everywhere: numbers line up in prose, tables and ticks. */
+    font-variant-numeric: tabular-nums;
+    font-kerning: normal;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  ::selection {
+    background: var(--c-accent);
+    color: var(--c-on-accent);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--c-accent);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  input,
+  textarea,
+  select {
+    caret-color: var(--c-accent);
+    accent-color: var(--c-accent);
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p,
+  li,
+  dd {
+    text-wrap: pretty;
+  }
+
+  code,
+  kbd,
+  samp {
+    font-family: var(--font-mono);
+    font-size: 0.86em;
+    font-variant-numeric: normal;
+  }
+
+  /* Inline code (flags, file names): a quiet band, never a pill. */
+  :where(p, li, dd, td, figcaption) > code {
+    padding: 0.05em 0.3em;
+    border-radius: 2px;
+    background: var(--c-band);
+  }
+}
+
+@layer components {
+  /* Text link, and unstyled links inside release copy: teal, hairline underline that thickens on hover. */
+  .link,
+  .prose-links a:not([class]) {
+    color: var(--c-accent);
+    text-decoration-line: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+  .link:hover,
+  .prose-links a:not([class]):hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* SVG text in figures: tabular, and a ground-coloured halo where it meets a mark. */
+  .fig-text {
+    font-variant-numeric: tabular-nums;
+  }
+  .fig-halo {
+    paint-order: stroke;
+    stroke: var(--c-bg);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  /*
+   * Text and number fields: 40px, hairline, field ground. Focus turns the
+   * border teal with a 1px ring; an invalid field does the same in red.
+   */
+  .field-input {
+    height: 2.5rem;
+    width: 100%;
+    border-radius: 4px;
+    border: 1px solid var(--c-ink-3);
+    background: var(--c-field);
+    padding-inline: 0.75rem;
+    font-size: var(--text-base);
+    font-variant-numeric: tabular-nums;
+    color: var(--c-ink);
+    transition:
+      border-color 150ms ease-out,
+      box-shadow 150ms ease-out;
+  }
+  .field-input:hover:not(:disabled) {
+    border-color: var(--c-ink-2);
+  }
+  .field-input:focus-visible {
+    outline: none;
+    border-color: var(--c-accent);
+    box-shadow: 0 0 0 1px var(--c-accent);
+  }
+  .field-input[aria-invalid="true"] {
+    border-color: var(--c-danger);
+    box-shadow: 0 0 0 1px var(--c-danger);
+  }
+  .field-input:disabled {
+    color: var(--c-ink-3);
+    background: var(--c-band);
+    cursor: not-allowed;
+  }
+
+  /* Scrollers that hide their bar (the nav on phones) still scroll by touch. */
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* The theme control's pressed look follows data-theme (set before first
+   paint by theme.js), so it's right before React hydrates. Unlayered, so
+   it outranks hover utilities. */
+:root[data-theme="light"] .theme-opt[data-opt="light"],
+:root[data-theme="dark"] .theme-opt[data-opt="dark"],
+:root:not([data-theme]) .theme-opt[data-opt="system"] {
+  color: var(--c-ink);
+  box-shadow: inset 0 -2px 0 var(--c-accent);
+}
+
+/* Disclosures open smoothly where supported (details::details-content). */
+details::details-content {
+  block-size: 0;
+  overflow: clip;
+  transition:
+    block-size 200ms var(--ease-out-quint),
+    content-visibility 200ms allow-discrete;
+}
+details[open]::details-content {
+  block-size: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Forced colours: marks keep their shapes, and the highlighted series
+   stays distinct by weight. */
+@media (forced-colors: active) {
+  .fig-halo {
+    stroke: Canvas;
+  }
 }

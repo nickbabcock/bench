@@ -1,0 +1,99 @@
+{
+ "schema": 1,
+ "id": "2026-11-08",
+ "bench": "allocation",
+ "input": null,
+ "repeat": {"index":2,"of":2},
+ "capturedAt": "2026-11-09T01:50:05.990Z",
+ "endedAt": "2026-11-09T01:50:14.013Z",
+ "machine": {"id":"m4pro-arm64","cpuModel":"Apple M4 Pro","arch":"arm64","cores":14,"os":"macOS 26.5.2 (25F84)","cpuFlags":[],"power":{"source":"AC","lowPowerMode":false},"loadAverage":[1.43,1.67,1.75]},
+ "browser": {
+  "id": "firefox",
+  "name": "Firefox",
+  "version": "151.0.3",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+  "headless": true,
+  "crossOriginIsolated": true,
+  "timerResolutionMs": 0.019999999999999574,
+  "timerMinStepMs": 0.019999999999999574
+ },
+ "toolchain": {
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "rustcNightly": "nightly-2026-11-01",
+  "wasiSdk": "wasi-sdk-29",
+  "binaryen": "wasm-opt version 133 (version_133)",
+  "wasmBindgen": "0.2.130",
+  "profile": {"optLevel":"3","lto":"true","codegenUnits":"1","targetFeatures":["none (no simd128)"],"wasmOpt":"-Os"},
+  "crates": {
+   "lz4_flex": "0.14.0",
+   "zstd": "0.14.3 (libzstd 1.5.7)",
+   "miniz_oxide": "0.9.1",
+   "zune-inflate": "0.2.54",
+   "libdeflater": "1.26.1 (libdeflate-sys 1.26.1)",
+   "zlib-rs": "0.6.8 (via flate2 1.1.11)",
+   "brotli": "9.1.1 (decoder brotli-decompressor 6.3.0)",
+   "pako": "3.0.3",
+   "fflate": "0.8.3",
+   "bumpalo": "3.20.3",
+   "bump-scope": "2.4.1",
+   "talc": "5.1.1",
+   "bevy_ecs": "0.20.1"
+  }
+ },
+ "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "artifacts": [
+  {"name":"alloc_bg.wasm","sha256":"507c0dd00c71371c4fbcd5a45aa96fca5728eae2ae20d598dfa3475a7148c6c3","bytes":45897},
+  {"name":"alloc_bump_scope_bg.wasm","sha256":"a72aceb4be6d70e45cfb4ac915047a8b6400f355ea88823d89fa263190798cd6","bytes":51689},
+  {"name":"alloc_bumpalo_bg.wasm","sha256":"bc5b316318ec854e04a4b367e3f7564525044084a2041903947d2ae8d222b00d","bytes":53364},
+  {"name":"alloc_talc_bg.wasm","sha256":"9e1abd73c109dbdb2a05136dce349ee174a98ee595ac1127bc1ecbddfcb297c9","bytes":40568}
+ ],
+ "corpus": [{"id":"xml","sha256":"0e82e54e695c1938e4193448022543845b33020c8be6bf3bf3ead2224903e08c","bytes":5345280}],
+ "method": {"samples":20,"batchTargetMs":50,"warmup":{"minMs":250,"minRounds":2,"maxRounds":20},"order":"rotate","paired":true},
+ "params": {"input":"xml","documents":21,"fixedBatches":3,"allocators":["dlmalloc","bumpalo","bump-scope","talc"],"baseline":"dlmalloc"},
+ "raw": {
+  "input": "xml",
+  "documents": {"sizes":[734535,669309,616094,510056,287906,279663,252682,251898,251643,247538,220869,201918,196308,179634,136841,113135,105011,48745,10248,6298,2244],"rejected":0},
+  "samples": 20,
+  "fixedBatches": 3,
+  "results": {
+   "dlmalloc": {
+    "samples": [2.5733333333333315,2.5723809523809513,2.5857142857142725,2.5704761904761697,2.660000000000006,2.584761904761914,2.5828571428571325,2.584761904761893,2.586666666666696,2.5457142857142876,2.57238095238093,2.6876190476190285,2.5580952380952504,2.551428571428568,2.604761904761896,2.602857142857136,2.55428571428573,2.5704761904761697,2.61428571428574,2.696190476190471],
+    "repetitions": 1,
+    "coldMs": 3.4809523809523815,
+    "pages": {"baseline":99,"after":199},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":80831964},
+    "checksum": 10126919
+   },
+   "bumpalo": {
+    "samples": [2.0171428571428525,2.0180952380952326,2.0033333333333303,2.0199999999999925,2.0357142857142856,2.0023809523809613,2.0066666666666824,2.012380952380963,2.025714285714284,2.0209523809523837,2.0061904761904814,2.0447619047619074,2.0304761904761843,2.029047619047625,2.0561904761904684,2.0304761904761843,2.0323809523809664,2.0204761904762045,2.0366666666666657,2.1138095238095396],
+    "repetitions": 2,
+    "coldMs": 2.6342857142857166,
+    "pages": {"baseline":99,"after":620},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":91638204},
+    "checksum": 10126919
+   },
+   "bump-scope": {
+    "samples": [2.101904761904756,2.130952380952381,2.095714285714285,2.1033333333333366,2.093333333333335,2.0966666666666653,2.1019047619047666,2.0961904761904755,2.0952380952380953,2.0871428571428536,2.0938095238095142,2.109999999999997,2.1085714285714383,2.0866666666666744,2.106190476190477,2.1161904761904786,2.0957142857142745,2.113809523809518,2.1128571428571377,2.1333333333333204],
+    "repetitions": 2,
+    "coldMs": 2.5723809523809513,
+    "pages": {"baseline":99,"after":620},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":91638204},
+    "checksum": 10126919
+   },
+   "talc": {
+    "samples": [2.44571428571427,2.4885714285714173,2.4676190476190554,2.457142857142853,2.475238095238096,2.459047619047613,2.4799999999999964,2.444761904761912,2.4780952380952366,2.479047619047638,2.4752380952380744,2.458095238095276,2.482857142857115,2.4771428571428777,2.4971428571428813,2.4828571428571586,2.4780952380952366,2.4399999999999897,2.5342857142857262,2.587619047619011],
+    "repetitions": 1,
+    "coldMs": 3.052380952380959,
+    "pages": {"baseline":99,"after":203},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":80831964},
+    "checksum": 10126919
+   }
+  },
+  "checksumsMatch": true,
+  "id": 1,
+  "startedAt": 1794189006035,
+  "endedAt": 1794189014013,
+  "context": {"browser":"Firefox 151","timerMs":0.01999999999998181,"crossOriginIsolated":true,"cores":14}
+ },
+ "repeatDrift": {"factor":1.013,"outliers":0}
+}

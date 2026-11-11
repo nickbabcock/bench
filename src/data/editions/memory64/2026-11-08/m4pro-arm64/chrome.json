@@ -1,0 +1,68 @@
+{
+ "schema": 1,
+ "id": "2026-11-08",
+ "bench": "memory64",
+ "input": null,
+ "repeat": {"index":1,"of":2},
+ "capturedAt": "2026-11-08T21:47:06.287Z",
+ "endedAt": "2026-11-08T21:47:16.564Z",
+ "machine": {"id":"m4pro-arm64","cpuModel":"Apple M4 Pro","arch":"arm64","cores":14,"os":"macOS 26.5.2 (25F84)","cpuFlags":[],"power":{"source":"AC","lowPowerMode":false},"loadAverage":[1.81,2.04,1.93]},
+ "browser": {
+  "id": "chrome",
+  "name": "Chrome",
+  "version": "156.0.8078.80",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "headless": true,
+  "crossOriginIsolated": true,
+  "timerResolutionMs": 0.005000114440917969,
+  "timerMinStepMs": 0.0049991607666015625
+ },
+ "toolchain": {
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "rustcNightly": "nightly-2026-11-01",
+  "wasiSdk": "wasi-sdk-29",
+  "binaryen": "wasm-opt version 133 (version_133)",
+  "wasmBindgen": "0.2.130",
+  "profile": {"optLevel":"3","lto":"true","codegenUnits":"1","targetFeatures":["none (no simd128)"],"wasmOpt":"-Os"},
+  "crates": {
+   "lz4_flex": "0.14.0",
+   "zstd": "0.14.3 (libzstd 1.5.7)",
+   "miniz_oxide": "0.9.1",
+   "zune-inflate": "0.2.54",
+   "libdeflater": "1.26.1 (libdeflate-sys 1.26.1)",
+   "zlib-rs": "0.6.8 (via flate2 1.1.11)",
+   "brotli": "9.1.1 (decoder brotli-decompressor 6.3.0)",
+   "pako": "3.0.3",
+   "fflate": "0.8.3",
+   "bumpalo": "3.20.3",
+   "bump-scope": "2.4.1",
+   "talc": "5.1.1",
+   "bevy_ecs": "0.20.1"
+  }
+ },
+ "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "artifacts": [
+  {"name":"memory64_wasm32_bg.wasm","sha256":"b0ba767ff81186ccd1708c1e93091bf22a6e1c08a3363c64b6f00382cbf9eb3c","bytes":254632},
+  {"name":"memory64_wasm64_bg.wasm","sha256":"c4914b49114e0a6360dd77baeb0b5de84297b69d688eae0d13c2ffcc28167cab","bytes":262986}
+ ],
+ "corpus": [],
+ "method": {"samples":20,"batchTargetMs":50,"warmup":{"minMs":500,"minRounds":2,"maxRounds":20},"order":"alternate","paired":true},
+ "params": {"workload":"editor","entities":100000,"frames":245},
+ "raw": {
+  "workload": "editor",
+  "params": {"entities":100000},
+  "repetitions": 1,
+  "frames": 245,
+  "samples": {
+   "wasm32": [234.45499992370605,236.82499980926514,236.51999950408936,238.51999950408936,236.44499969482422,236.97500038146973,238.0950002670288,237.54500007629395,239.9099998474121,238.20499992370605,235.10000038146973,235.93499946594238,235.66500091552734,237.32499980926514,235.52000045776367,237.07000064849854,233.9399995803833,237,236.04500007629395,237.10500049591064],
+   "wasm64": [204.9050006866455,209.1549997329712,206.49000072479248,205.49000072479248,206.05999946594238,205.41499996185303,206.01000022888184,204.3449993133545,206.2150001525879,205.22999954223633,205.38499927520752,203.67000007629395,205.5950002670288,205.05500030517578,204.51000022888184,203.9399995803833,205.5049991607666,206.46000003814697,206.17000007629395,204.89999961853027]
+  },
+  "memoryBytes": {"wasm32":41156608,"wasm64":42729472},
+  "pointerWidths": {"wasm32":32,"wasm64":64},
+  "checksumsMatch": true,
+  "id": 1,
+  "context": {"browser":"Chrome 156","timerMs":0.0049991607666015625,"crossOriginIsolated":true,"cores":14},
+  "startedAt": 1794174426308,
+  "endedAt": 1794174436564
+ }
+}

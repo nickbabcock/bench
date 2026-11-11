@@ -5,8 +5,10 @@ members = [
     "packages/alloc-bumpalo",
     "packages/alloc-bump-scope",
     "packages/alloc-talc",
+    "packages/alloc-workload",
     "packages/br-read",
     "packages/br-write",
+    "packages/corpus",
     "packages/libdeflate",
     "packages/lz4",
     "packages/memory64",
@@ -27,3 +29,6 @@ debug = true
 
 [workspace.dependencies]
 wasm-bindgen = { version = "0.2.130" }
+# The one Vec every allocation crate uses; bumpalo 3.20 and bump-scope 2.4 both implement its 0.2 Allocator trait.
+# "std" matches what bump-scope enables, so building one crate alone (build:variants) gives the same module as the workspace build.
+allocator-api2 = { version = "0.2.21", features = ["std"] }

@@ -1,0 +1,99 @@
+{
+ "schema": 1,
+ "id": "2026-11-08",
+ "bench": "allocation",
+ "input": null,
+ "repeat": {"index":2,"of":2},
+ "capturedAt": "2026-11-09T01:49:54.758Z",
+ "endedAt": "2026-11-09T01:50:04.050Z",
+ "machine": {"id":"m4pro-arm64","cpuModel":"Apple M4 Pro","arch":"arm64","cores":14,"os":"macOS 26.5.2 (25F84)","cpuFlags":[],"power":{"source":"AC","lowPowerMode":false},"loadAverage":[1.5,1.69,1.76]},
+ "browser": {
+  "id": "chrome",
+  "name": "Chrome",
+  "version": "156.0.8078.80",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/156.0.0.0 Safari/537.36",
+  "headless": true,
+  "crossOriginIsolated": true,
+  "timerResolutionMs": 0.005000114440917969,
+  "timerMinStepMs": 0.0049991607666015625
+ },
+ "toolchain": {
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "rustcNightly": "nightly-2026-11-01",
+  "wasiSdk": "wasi-sdk-29",
+  "binaryen": "wasm-opt version 133 (version_133)",
+  "wasmBindgen": "0.2.130",
+  "profile": {"optLevel":"3","lto":"true","codegenUnits":"1","targetFeatures":["none (no simd128)"],"wasmOpt":"-Os"},
+  "crates": {
+   "lz4_flex": "0.14.0",
+   "zstd": "0.14.3 (libzstd 1.5.7)",
+   "miniz_oxide": "0.9.1",
+   "zune-inflate": "0.2.54",
+   "libdeflater": "1.26.1 (libdeflate-sys 1.26.1)",
+   "zlib-rs": "0.6.8 (via flate2 1.1.11)",
+   "brotli": "9.1.1 (decoder brotli-decompressor 6.3.0)",
+   "pako": "3.0.3",
+   "fflate": "0.8.3",
+   "bumpalo": "3.20.3",
+   "bump-scope": "2.4.1",
+   "talc": "5.1.1",
+   "bevy_ecs": "0.20.1"
+  }
+ },
+ "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "artifacts": [
+  {"name":"alloc_bg.wasm","sha256":"507c0dd00c71371c4fbcd5a45aa96fca5728eae2ae20d598dfa3475a7148c6c3","bytes":45897},
+  {"name":"alloc_bump_scope_bg.wasm","sha256":"a72aceb4be6d70e45cfb4ac915047a8b6400f355ea88823d89fa263190798cd6","bytes":51689},
+  {"name":"alloc_bumpalo_bg.wasm","sha256":"bc5b316318ec854e04a4b367e3f7564525044084a2041903947d2ae8d222b00d","bytes":53364},
+  {"name":"alloc_talc_bg.wasm","sha256":"9e1abd73c109dbdb2a05136dce349ee174a98ee595ac1127bc1ecbddfcb297c9","bytes":40568}
+ ],
+ "corpus": [{"id":"xml","sha256":"0e82e54e695c1938e4193448022543845b33020c8be6bf3bf3ead2224903e08c","bytes":5345280}],
+ "method": {"samples":20,"batchTargetMs":50,"warmup":{"minMs":250,"minRounds":2,"maxRounds":20},"order":"rotate","paired":true},
+ "params": {"input":"xml","documents":21,"fixedBatches":3,"allocators":["dlmalloc","bumpalo","bump-scope","talc"],"baseline":"dlmalloc"},
+ "raw": {
+  "input": "xml",
+  "documents": {"sizes":[734535,669309,616094,510056,287906,279663,252682,251898,251643,247538,220869,201918,196308,179634,136841,113135,105011,48745,10248,6298,2244],"rejected":0},
+  "samples": 20,
+  "fixedBatches": 3,
+  "results": {
+   "dlmalloc": {
+    "samples": [2.2602381025041853,2.2635714440118697,2.2677380925133113,2.2584523927597773,2.2722618920462474,2.249285720643543,2.2776190439860025,2.2685714222135998,2.2667857124691917,2.2702381043207076,2.2745238031659807,2.27249999273391,2.2813095365251814,2.2796428544180736,2.2750000045413064,2.261428560529436,2.2605952535356795,2.2609523818606423,2.27630953561692,2.2630952426365445],
+    "repetitions": 2,
+    "coldMs": 2.6997619356427873,
+    "pages": {"baseline":99,"after":199},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":80831964},
+    "checksum": 10126919
+   },
+   "bumpalo": {
+    "samples": [1.777023814973377,1.7491666702997117,1.7528571401323592,1.744047619047619,1.7560714312962122,1.761190482548305,1.7620238122485934,1.785476185026623,1.7496428716750372,1.7616666612170993,1.7554762022835868,1.7546428498767672,1.794285706111363,1.7680952208382743,1.7522619111197335,1.7709523836771648,1.7572618893214635,1.7633333206176758,1.7514285814194452,1.756071408589681],
+    "repetitions": 2,
+    "coldMs": 2.22761903490339,
+    "pages": {"baseline":99,"after":620},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":91638204},
+    "checksum": 10126919
+   },
+   "bump-scope": {
+    "samples": [1.8148809614635648,1.8178571519397555,1.806785719735282,1.8215476217724027,1.8194047609965007,1.8173809505644298,1.8398809660048712,1.806547619047619,1.8308333442324685,1.823809510185605,1.815952391851516,1.824880940573556,1.8361904961722237,1.8152380897885276,1.8186904816400438,1.8123809723627,1.817738101595924,1.8327381043207078,1.8379761832101005,1.8399999936421711],
+    "repetitions": 2,
+    "coldMs": 2.223809560139974,
+    "pages": {"baseline":99,"after":620},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":91638204},
+    "checksum": 10126919
+   },
+   "talc": {
+    "samples": [2.2161904743739536,2.2054761932009743,2.2192857151939753,2.204047611781529,2.204404762813023,2.212380954197475,2.2459523791358587,2.2199999945504323,2.211071423121861,2.204761891137986,2.2102380934215726,2.217857156481062,2.2055952435448054,2.201904773712158,2.203928584144229,2.2295238176981607,2.2091666630336215,2.2030952317374095,2.249285720643543,2.2032142820812406],
+    "repetitions": 2,
+    "coldMs": 2.6269047600882396,
+    "pages": {"baseline":99,"after":203},
+    "profile": {"allocs":991869,"grows":271178,"shrinks":0,"frees":991869,"bytes":80831964},
+    "checksum": 10126919
+   }
+  },
+  "checksumsMatch": true,
+  "id": 1,
+  "startedAt": 1794188994798,
+  "endedAt": 1794189004050,
+  "context": {"browser":"Chrome 156","timerMs":0.0049991607666015625,"crossOriginIsolated":true,"cores":14}
+ },
+ "repeatDrift": {"factor":1.019,"outliers":0}
+}

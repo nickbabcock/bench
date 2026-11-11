@@ -1,0 +1,68 @@
+{
+ "schema": 1,
+ "id": "2026-11-08",
+ "bench": "memory64",
+ "input": null,
+ "repeat": {"index":2,"of":2},
+ "capturedAt": "2026-11-08T22:53:23.690Z",
+ "endedAt": "2026-11-08T22:53:34.691Z",
+ "machine": {"id":"m4pro-arm64","cpuModel":"Apple M4 Pro","arch":"arm64","cores":14,"os":"macOS 26.5.2 (25F84)","cpuFlags":[],"power":{"source":"AC","lowPowerMode":false},"loadAverage":[1.21,1.46,1.66]},
+ "browser": {
+  "id": "firefox",
+  "name": "Firefox",
+  "version": "151.0.3",
+  "userAgent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:151.0) Gecko/20100101 Firefox/151.0",
+  "headless": true,
+  "crossOriginIsolated": true,
+  "timerResolutionMs": 0.019999999999999574,
+  "timerMinStepMs": 0.019999999999999574
+ },
+ "toolchain": {
+  "rustc": "rustc 1.99.1 (58cf8f9c3 2026-10-13)",
+  "rustcNightly": "nightly-2026-11-01",
+  "wasiSdk": "wasi-sdk-29",
+  "binaryen": "wasm-opt version 133 (version_133)",
+  "wasmBindgen": "0.2.130",
+  "profile": {"optLevel":"3","lto":"true","codegenUnits":"1","targetFeatures":["none (no simd128)"],"wasmOpt":"-Os"},
+  "crates": {
+   "lz4_flex": "0.14.0",
+   "zstd": "0.14.3 (libzstd 1.5.7)",
+   "miniz_oxide": "0.9.1",
+   "zune-inflate": "0.2.54",
+   "libdeflater": "1.26.1 (libdeflate-sys 1.26.1)",
+   "zlib-rs": "0.6.8 (via flate2 1.1.11)",
+   "brotli": "9.1.1 (decoder brotli-decompressor 6.3.0)",
+   "pako": "3.0.3",
+   "fflate": "0.8.3",
+   "bumpalo": "3.20.3",
+   "bump-scope": "2.4.1",
+   "talc": "5.1.1",
+   "bevy_ecs": "0.20.1"
+  }
+ },
+ "commit": {"sha":"8107f40dca0737e2f6abcf1a15924f8307efb189","dirty":true},
+ "artifacts": [
+  {"name":"memory64_wasm32_bg.wasm","sha256":"b0ba767ff81186ccd1708c1e93091bf22a6e1c08a3363c64b6f00382cbf9eb3c","bytes":254632},
+  {"name":"memory64_wasm64_bg.wasm","sha256":"c4914b49114e0a6360dd77baeb0b5de84297b69d688eae0d13c2ffcc28167cab","bytes":262986}
+ ],
+ "corpus": [],
+ "method": {"samples":20,"batchTargetMs":50,"warmup":{"minMs":500,"minRounds":2,"maxRounds":20},"order":"alternate","paired":true},
+ "params": {"workload":"editor","entities":100000,"frames":245},
+ "raw": {
+  "workload": "editor",
+  "params": {"entities":100000},
+  "repetitions": 1,
+  "frames": 245,
+  "samples": {
+   "wasm32": [235.68000000000006,237.46000000000004,235.75999999999976,233.80000000000018,235.48000000000002,236.3199999999997,234.76000000000022,234.92000000000007,235.57999999999993,235.84000000000015,234.84000000000015,233.80000000000018,237.1199999999999,238.23999999999978,235.5599999999995,236.39999999999964,235.1200000000008,234.5,234.60000000000036,234.73999999999978],
+   "wasm64": [236.15999999999985,237.69999999999982,235.79999999999973,230.53999999999996,232.22000000000025,232.51999999999998,233.6800000000003,234.53999999999996,234.8800000000001,234.47999999999956,235.72000000000025,235.76000000000022,237.95999999999913,231.4399999999996,235.73999999999978,232.46000000000095,231.71999999999935,230.46000000000095,235.84000000000015,233.51999999999862]
+  },
+  "memoryBytes": {"wasm32":41156608,"wasm64":42729472},
+  "pointerWidths": {"wasm32":32,"wasm64":64},
+  "checksumsMatch": true,
+  "id": 1,
+  "context": {"browser":"Firefox 151","timerMs":0.01999999999998181,"crossOriginIsolated":true,"cores":14},
+  "startedAt": 1794178403711,
+  "endedAt": 1794178414691
+ }
+}

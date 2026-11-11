@@ -9,4 +9,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 wasm-bindgen.workspace = true
-bump-scope = "2.4.1"
+alloc-workload = { path = "../alloc-workload" }
+# allocator-api2-02: `&Bump` implements allocator_api2 0.2's Allocator, matching bumpalo.
+bump-scope = { version = "2.4.1", features = ["allocator-api2-02"] }

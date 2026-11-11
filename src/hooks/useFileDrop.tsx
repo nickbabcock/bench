@@ -1,36 +1,41 @@
 import { useIsomorphicLayoutEffect } from "@/hooks";
 import { RefObject, useEffect, useRef, useState } from "react";
 
-function containsFiles(e: DragEvent): boolean {
-  const arr = e.dataTransfer?.items;
-  return arr?.length === 1 && arr[0].kind === "file";
-}
+const hasFiles = (e: DragEvent) =>
+  Array.from(e.dataTransfer?.types ?? []).includes("Files");
 
 export interface FileDropProps {
   onFile: (file: File) => void | Promise<void>;
+  /** Called instead of onFile when a drop can't be used (e.g. two files). */
+  onReject?: (reason: string) => void;
   enabled?: boolean;
   target?: RefObject<HTMLElement | null>;
 }
 
-export function useFileDrop({ onFile, enabled = true, target }: FileDropProps) {
+/**
+ * Accept a single dropped file on `target` (or the whole document). File
+ * drops are always swallowed so the browser never navigates away to the
+ * file, even while disabled.
+ */
+export function useFileDrop({
+  onFile,
+  onReject,
+  enabled = true,
+  target,
+}: FileDropProps) {
   const [isHovering, setHovering] = useState(false);
 
   // keep count of drags: https://stackoverflow.com/a/21002544/433785
   const dragCount = useRef(0);
 
-  // Latest ref pattern for props. This way we don't need to add and remove
-  // event listeners every time one of them changes.
+  // Latest ref pattern for props, so listeners are added once.
   const enabledRef = useRef(enabled);
   const onFileRef = useRef(onFile);
+  const onRejectRef = useRef(onReject);
   useIsomorphicLayoutEffect(() => {
     enabledRef.current = enabled;
-    onFileRef.current = (file: File) => {
-      try {
-        onFile(file);
-      } finally {
-        dragCount.current = 0;
-      }
-    };
+    onFileRef.current = onFile;
+    onRejectRef.current = onReject;
   });
 
   useEffect(() => {
@@ -39,85 +44,64 @@ export function useFileDrop({ onFile, enabled = true, target }: FileDropProps) {
     }
     const elem = target ? target.current : document;
 
-    function dragDrop(e: Event) {
-      if (!(e instanceof DragEvent)) {
+    function drop(e: Event) {
+      if (!(e instanceof DragEvent) || !hasFiles(e)) {
         return;
       }
-
-      if (!enabledRef.current || !containsFiles(e)) {
-        return;
-      }
-
       e.preventDefault();
       e.stopPropagation();
+      dragCount.current = 0;
       setHovering(false);
-
-      if (e.dataTransfer && e.dataTransfer.items) {
-        const items = e.dataTransfer.items;
-        if (items.length !== 1) {
-          throw Error("unexpected one file drop");
-        }
-        const file = items[0].getAsFile();
-        if (file === null) {
-          throw Error("bad dropped file");
-        }
-
-        onFileRef.current(file);
-      } else if (e.dataTransfer && e.dataTransfer.files) {
-        const files = e.dataTransfer.files;
-        if (files.length !== 1) {
-          throw Error("unexpected one file drop");
-        }
-
-        onFileRef.current(files[0]);
-      } else {
-        throw Error("unexpected data transfer");
-      }
-    }
-
-    function highlight(e: Event) {
-      if (!(e instanceof DragEvent)) {
+      if (!enabledRef.current) {
         return;
       }
+      const files = Array.from(e.dataTransfer?.files ?? []);
+      if (files.length !== 1) {
+        onRejectRef.current?.(
+          files.length === 0
+            ? "That drop didn't contain a readable file."
+            : `You dropped ${files.length} files. Drop one file at a time.`,
+        );
+        return;
+      }
+      onFileRef.current(files[0]);
+    }
 
-      if (enabledRef.current && containsFiles(e)) {
+    function enter(e: Event) {
+      if (e instanceof DragEvent && hasFiles(e) && enabledRef.current) {
         dragCount.current += 1;
         e.preventDefault();
-        e.stopPropagation();
         setHovering(true);
       }
     }
 
-    function unhighlight(e: Event) {
-      if (!(e instanceof DragEvent)) {
-        return;
-      }
-
-      if (enabledRef.current && containsFiles(e)) {
-        dragCount.current -= 1;
-        e.preventDefault();
-        e.stopPropagation();
+    function leave(e: Event) {
+      if (e instanceof DragEvent && hasFiles(e) && enabledRef.current) {
+        dragCount.current = Math.max(0, dragCount.current - 1);
         setHovering(dragCount.current !== 0);
       }
     }
 
-    // If you want to allow a drop, you must prevent the default handling by
-    // cancelling both the dragenter and dragover events
-    // ref: https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API/Drag_operations#specifying_drop_targets
-    function dragover(e: Event) {
+    // Cancelling dragover is what allows a drop at all.
+    function over(e: Event) {
+      if (!(e instanceof DragEvent) || !hasFiles(e)) {
+        return;
+      }
       e.preventDefault();
+      if (e.dataTransfer) {
+        e.dataTransfer.dropEffect = enabledRef.current ? "copy" : "none";
+      }
     }
 
-    elem.addEventListener("drop", dragDrop, { capture: true });
-    elem.addEventListener("dragenter", highlight, false);
-    elem.addEventListener("dragleave", unhighlight, false);
-    elem.addEventListener("dragover", dragover, false);
-
+    elem.addEventListener("drop", drop, { capture: true });
+    elem.addEventListener("dragenter", enter);
+    elem.addEventListener("dragleave", leave);
+    elem.addEventListener("dragover", over);
     return () => {
-      elem.removeEventListener("drop", dragDrop, { capture: true });
-      elem.removeEventListener("dragenter", highlight, false);
-      elem.removeEventListener("dragleave", unhighlight, false);
-      elem.removeEventListener("dragover", dragover, false);
+      elem.removeEventListener("drop", drop, { capture: true });
+      elem.removeEventListener("dragenter", enter);
+      elem.removeEventListener("dragleave", leave);
+      elem.removeEventListener("dragover", over);
     };
   }, [target]);
 

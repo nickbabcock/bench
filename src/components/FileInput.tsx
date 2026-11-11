@@ -1,53 +1,57 @@
-import { useRef, useId } from "react";
-import { useFileDrop } from "@/hooks";
 import { clsx } from "clsx";
+import { useId } from "react";
+import { buttonClass, type ButtonProps } from "./Button";
 
-type FileInputProps = {
-  onChange: (file: File) => void | Promise<void>;
+type FileButtonProps = {
+  onFile: (file: File) => void;
   disabled?: boolean;
   children: React.ReactNode;
+  variant?: ButtonProps["variant"];
+  size?: ButtonProps["size"];
+  className?: string;
 };
 
-export const FileInput = ({
-  onChange,
-  children,
+/**
+ * A native file input, visually hidden but focusable, behind a label styled
+ * as a button. The focus ring follows the input onto its label.
+ */
+export const FileButton = ({
+  onFile,
   disabled = false,
-}: FileInputProps) => {
-  const dropAreaRef = useRef<HTMLDivElement>(null);
-  const inputId = useId();
-  const { isHovering: isFileHovering } = useFileDrop({
-    onFile: onChange,
-    target: dropAreaRef,
-  });
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.currentTarget?.files?.[0];
-    if (file) {
-      e.currentTarget.value = "";
-      onChange(file);
-    }
-  };
-
+  children,
+  variant = "primary",
+  size = "md",
+  className,
+}: FileButtonProps) => {
+  const id = useId();
   return (
-    <div className="w-full" ref={dropAreaRef}>
+    <span className="relative flex sm:inline-flex">
       <input
-        id={inputId}
+        id={id}
         type="file"
-        className="peer absolute opacity-0"
+        className="peer sr-only"
         disabled={disabled}
-        onChange={handleChange}
+        onChange={(e) => {
+          const file = e.currentTarget.files?.[0];
+          e.currentTarget.value = "";
+          if (file) {
+            onFile(file);
+          }
+        }}
       />
       <label
-        htmlFor={inputId}
+        htmlFor={id}
         className={clsx(
-          "flex cursor-pointer items-center justify-center rounded-lg border-2 border-dashed transition-colors peer-focus:ring-2 peer-focus:ring-blue-500 peer-focus:ring-offset-2 peer-disabled:cursor-not-allowed peer-disabled:saturate-0",
-          !isFileHovering
-            ? "border-gray-300 bg-gray-50 hover:bg-gray-100 dark:border-gray-600 dark:bg-gray-800 dark:hover:bg-gray-700"
-            : "border-blue-400 bg-blue-50 dark:border-blue-500 dark:bg-blue-900/20",
+          buttonClass({ variant, size }),
+          "w-full sm:w-auto",
+          "peer-focus-visible:outline-2 peer-focus-visible:outline-offset-2 peer-focus-visible:outline-accent",
+          disabled && "pointer-events-none border-rule bg-band text-ink-3",
+          className,
         )}
+        aria-disabled={disabled || undefined}
       >
         {children}
       </label>
-    </div>
+    </span>
   );
 };

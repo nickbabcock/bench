@@ -11,8 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AllocationRouteImport } from './routes/allocation'
+import { Route as BuildRouteImport } from './routes/build'
+import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as CompressionRouteImport } from './routes/compression'
+import { Route as DevKitRouteImport } from './routes/dev-kit'
 import { Route as Memory64RouteImport } from './routes/memory64'
+import { Route as MethodRouteImport } from './routes/method'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -24,9 +28,24 @@ const AllocationRoute = AllocationRouteImport.update({
   path: '/allocation',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BuildRoute = BuildRouteImport.update({
+  id: '/build',
+  path: '/build',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CaptureRoute = CaptureRouteImport.update({
+  id: '/capture',
+  path: '/capture',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CompressionRoute = CompressionRouteImport.update({
   id: '/compression',
   path: '/compression',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DevKitRoute = DevKitRouteImport.update({
+  id: '/dev-kit',
+  path: '/dev-kit',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Memory64Route = Memory64RouteImport.update({
@@ -34,39 +53,85 @@ const Memory64Route = Memory64RouteImport.update({
   path: '/memory64',
   getParentRoute: () => rootRouteImport,
 } as any)
+const MethodRoute = MethodRouteImport.update({
+  id: '/method',
+  path: '/method',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
+  '/build': typeof BuildRoute
+  '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
+  '/dev-kit': typeof DevKitRoute
   '/memory64': typeof Memory64Route
+  '/method': typeof MethodRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
+  '/build': typeof BuildRoute
+  '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
+  '/dev-kit': typeof DevKitRoute
   '/memory64': typeof Memory64Route
+  '/method': typeof MethodRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/allocation': typeof AllocationRoute
+  '/build': typeof BuildRoute
+  '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
+  '/dev-kit': typeof DevKitRoute
   '/memory64': typeof Memory64Route
+  '/method': typeof MethodRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/allocation' | '/compression' | '/memory64'
+  fullPaths:
+    | '/'
+    | '/allocation'
+    | '/build'
+    | '/capture'
+    | '/compression'
+    | '/dev-kit'
+    | '/memory64'
+    | '/method'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/allocation' | '/compression' | '/memory64'
-  id: '__root__' | '/' | '/allocation' | '/compression' | '/memory64'
+  to:
+    | '/'
+    | '/allocation'
+    | '/build'
+    | '/capture'
+    | '/compression'
+    | '/dev-kit'
+    | '/memory64'
+    | '/method'
+  id:
+    | '__root__'
+    | '/'
+    | '/allocation'
+    | '/build'
+    | '/capture'
+    | '/compression'
+    | '/dev-kit'
+    | '/memory64'
+    | '/method'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AllocationRoute: typeof AllocationRoute
+  BuildRoute: typeof BuildRoute
+  CaptureRoute: typeof CaptureRoute
   CompressionRoute: typeof CompressionRoute
+  DevKitRoute: typeof DevKitRoute
   Memory64Route: typeof Memory64Route
+  MethodRoute: typeof MethodRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -85,11 +150,32 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AllocationRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/build': {
+      id: '/build'
+      path: '/build'
+      fullPath: '/build'
+      preLoaderRoute: typeof BuildRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/capture': {
+      id: '/capture'
+      path: '/capture'
+      fullPath: '/capture'
+      preLoaderRoute: typeof CaptureRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/compression': {
       id: '/compression'
       path: '/compression'
       fullPath: '/compression'
       preLoaderRoute: typeof CompressionRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dev-kit': {
+      id: '/dev-kit'
+      path: '/dev-kit'
+      fullPath: '/dev-kit'
+      preLoaderRoute: typeof DevKitRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/memory64': {
@@ -99,14 +185,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Memory64RouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/method': {
+      id: '/method'
+      path: '/method'
+      fullPath: '/method'
+      preLoaderRoute: typeof MethodRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AllocationRoute: AllocationRoute,
+  BuildRoute: BuildRoute,
+  CaptureRoute: CaptureRoute,
   CompressionRoute: CompressionRoute,
+  DevKitRoute: DevKitRoute,
   Memory64Route: Memory64Route,
+  MethodRoute: MethodRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

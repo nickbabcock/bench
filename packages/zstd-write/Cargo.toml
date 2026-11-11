@@ -9,4 +9,6 @@ crate-type = ["cdylib", "rlib"]
 
 [dependencies]
 zstd = { version = "0.14.3", default-features = false }
+# Only for ZSTD_getCParams, to report each level's effective parameters.
+zstd-sys = { version = "2.1.2", default-features = false, features = ["experimental"] }
 wasm-bindgen.workspace = true
