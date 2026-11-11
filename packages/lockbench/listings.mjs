@@ -1,0 +1,84 @@
+// The WebAssembly text of each lock kernel (the `k_*` functions in
+// src/lib.rs), in each of the three builds, as wasm-bindgen ships them. Run
+// by `mise run build:locks`; the RefCell against Mutex page reads
+// src/wasm/locks-listings.json.
+import { execFileSync } from "node:child_process";
+import { existsSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+
+const builds = { abort: "locks_abort_bg.wasm", unwind: "locks_unwind_bg.wasm", atomics: "locks_atomics_bg.wasm" };
+/** Older versions can not read the exnref instructions of the panic=unwind build. */
+const MIN_MINOR = 220;
+
+/**
+ * The wasm-tools that mise pins. Find it by its install directory, because
+ * an older wasm-tools (for example from `cargo install`) can come first on
+ * the PATH.
+ */
+function wasmTools() {
+  const candidates = [];
+  try {
+    const dir = execFileSync("mise", ["where", "github:bytecodealliance/wasm-tools"], { stdio: ["ignore", "pipe", "ignore"] }).toString().trim();
+    candidates.push(join(dir, process.platform === "win32" ? "wasm-tools.exe" : "wasm-tools"));
+  } catch {
+    // mise is not on the PATH: use the PATH only.
+  }
+  candidates.push("wasm-tools");
+  for (const bin of candidates) {
+    if (bin !== "wasm-tools" && !existsSync(bin)) {
+      continue;
+    }
+    const version = execFileSync(bin, ["--version"]).toString().trim();
+    const minor = Number(/^wasm-tools 1\.(\d+)\./.exec(version)?.[1] ?? 0);
+    if (minor >= MIN_MINOR) {
+      return bin;
+    }
+    console.warn(`skipped ${bin}: ${version} is older than 1.${MIN_MINOR}`);
+  }
+  throw new Error(`No wasm-tools 1.${MIN_MINOR} or later. Run \`mise install\`.`);
+}
+
+/** Remove the crate hashes ("lockbench[f59a04ab9c98f576]") and the "lockbench::" prefix. */
+const tidy = (line) => line.replace(/\[[0-9a-f]{16}\]/g, "").replace(/\$"lockbench::(\w+)"/g, "$$$1");
+
+/** Every top-level `(func …)` of a kernel, by kernel name, as text with the module indent removed. */
+function kernels(text) {
+  const out = {};
+  let name;
+  let lines = [];
+  for (const line of text.split("\n")) {
+    if (/^ {2}\(/.test(line) || line === ")") {
+      if (name) {
+        out[name] = lines.join("\n");
+      }
+      name = /^ {2}\(func \$"lockbench\[[0-9a-f]{16}\]::(k_\w+)"/.exec(line)?.[1];
+      lines = [];
+      if (name) {
+        // "(func $"…::k_mutex_lock" (;67;) (type 21) (param i32 i64)": keep the name and the signature.
+        lines.push(tidy(line.slice(2)).replace(/ \(;\d+;\)/, "").replace(/ \(type \d+\)/, ""));
+      }
+      continue;
+    }
+    if (name) {
+      lines.push(tidy(line.slice(2)));
+    }
+  }
+  return out;
+}
+
+const bin = wasmTools();
+const listings = Object.fromEntries(
+  Object.entries(builds).map(([build, file]) => {
+    const text = execFileSync(bin, ["print", join("src/wasm", file)], { maxBuffer: 64 << 20 }).toString();
+    return [build, kernels(text)];
+  }),
+);
+const names = Object.keys(listings.abort).sort();
+for (const [build, k] of Object.entries(listings)) {
+  if (Object.keys(k).sort().join() !== names.join() || names.length === 0) {
+    throw new Error(`The ${build} build has kernels ${Object.keys(k).sort().join(", ")}; the default build has ${names.join(", ")}`);
+  }
+}
+const version = execFileSync(bin, ["--version"]).toString().trim();
+writeFileSync("src/wasm/locks-listings.json", `${JSON.stringify({ printer: version, builds: listings }, null, 2)}\n`);
+console.log(`${names.length} kernels in ${Object.keys(builds).length} builds: ${names.join(", ")}`);

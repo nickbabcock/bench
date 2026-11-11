@@ -44,6 +44,7 @@ import { isPairedClaim, type PairedEffect, PRACTICAL_FLOOR, summarize } from "@/
 import { baselineEffect, comparisonEffect, effectWords, runClaim, samplesOf } from "./claims";
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
+import { listings, LocksListings } from "./Listings";
 import { reference } from "./reference";
 import { cancelRun, markViewed, MAX_ROUNDS, MIN_ROUNDS, selectRun, setSampleCount, startRun, useLocksSession } from "./session";
 import { buildComparisons, type Comparison, groupInfo, lockComparisons, type Variant, variantInfo, variants, type Workload, workloads } from "./workloads";
@@ -75,6 +76,10 @@ const noPoints = (mine: boolean, pending: number, replicated: boolean) =>
     : pending === 0
       ? "No comparison cleared the threshold, so there are no main points."
       : unreproducedNote(pending, replicated);
+
+/** Why some rounds ran twice. */
+const backgroundText = (rounds: number) =>
+  `The page went to the background during ${plural(rounds, "round")}. A browser gives a background page less CPU, so ${rounds === 1 ? "that round was" : "those rounds were"} measured again and only the measurement in the foreground is shown.`;
 
 /** What to try after an error, by its kind. */
 const recovery = (error: string) => (/\b(worker|import|fetch|load|compile|instantiate)\b/i.test(error) ? "a build or its worker failed to load; reload the page and try again" : undefined);
@@ -121,6 +126,7 @@ export const Locks = () => {
     { id: "cost", title: "Time per operation" },
     { id: "locks", title: "Mutex against RefCell" },
     { id: "builds", title: "What each build costs" },
+    ...(listings ? [{ id: "code", title: "The WebAssembly" }] : []),
     { id: "table", title: "Results" },
     { id: "measure", title: "Measure on this machine" },
   ];
@@ -213,6 +219,7 @@ export const Locks = () => {
   const skipped = variants.filter((v) => row.skipped[v]).map((v) => `${variantInfo[v].label} was not measured: ${row.skipped[v]}.`);
   const notes: NoteItem[] = [
     ...(showMine ? [conditionsNote(mine, `${plural(n, "round")}, each sample a batch of at least ${MIN_SAMPLE_MS} ms of ${row.iterations} iterations per call.`)] : []),
+    ...(row.backgroundRounds ? [{ term: "Background", detail: backgroundText(row.backgroundRounds) }] : []),
     {
       term: "Workloads",
       detail: (
@@ -366,6 +373,12 @@ export const Locks = () => {
           )}
         </Section>
 
+        {listings ? (
+          <Section id="code">
+            <LocksListings n={4} row={row} engine={entry.engine} />
+          </Section>
+        ) : null}
+
         <Section id="table">
           <DataTable
             id={TABLE_ID}
@@ -455,13 +468,18 @@ const LocksMeasure = ({ refRun, mine, onShowRun }: { refRun?: ResultRow; mine?: 
       : latest && latest.variants.length < variants.length
         ? { kind: "partial", measured: latest.variants.length, total: variants.length, unit: "builds", reason: variants.filter((v) => latest.skipped[v]).map((v) => `${variantInfo[v].label} ${latest.skipped[v]}.`).join(" ") }
         : latest
-          ? { kind: "done", measured: latest.variants.length, unit: "builds" }
+          ? { kind: "done", measured: latest.variants.length, unit: "builds", ...(latest.backgroundRounds ? { shown: `${backgroundText(latest.backgroundRounds)} The switch at the top of the page now shows This machine.` } : {}) }
           : undefined;
   const PREP = 3;
   const fraction = progress ? (progress.prep * PREP + progress.completed) / (PREP + progress.total) : 0;
   return (
     <MeasureSection
-      intro={<p>Run every workload in every build this browser can load. A run takes about a minute at 10 rounds.</p>}
+      intro={
+        <p>
+          Run every workload in every build this browser can load. A run takes about a minute at 10 rounds. Keep this tab in the foreground: the run
+          pauses while it is in the background.
+        </p>
+      }
       run={{ label: "Run all builds", onRun: () => startRun(), disabled: otherRunning || Boolean(samplesError), disabledReason }}
       onCancel={running ? cancelRun : undefined}
       running={running}

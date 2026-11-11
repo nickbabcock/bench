@@ -90,7 +90,7 @@ export const workloads: readonly Workload[] = [
   { id: "op/plain_read", group: "op", code: "*c", baseline: "op/plain_read" },
   { id: "op/refcell_read", group: "op", code: "*c.borrow()", baseline: "op/plain_read" },
   { id: "op/rwlock_read", group: "op", code: "*l.read().unwrap()", baseline: "op/plain_read" },
-  { id: "loop/plain", group: "loop", code: "*p += x", baseline: "loop/plain" },
+  { id: "loop/plain", group: "loop", code: "v += x; *p = v", baseline: "loop/plain" },
   { id: "loop/cell", group: "loop", code: "p.set(p.get() + x)", baseline: "loop/plain" },
   { id: "loop/atomic_relaxed", group: "loop", code: "p.fetch_add(x, Relaxed)", baseline: "loop/plain" },
   { id: "loop/refcell_write", group: "loop", code: "*p.borrow_mut() += x", baseline: "loop/plain" },

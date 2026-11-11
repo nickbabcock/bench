@@ -224,13 +224,19 @@ op_read!(op_rwlock_read, rwlock, k_rwlock_read);
 // through `black_box`, an opaque step that could touch the container.
 // ---------------------------------------------------------------------------
 
+// The baseline keeps the running value in a local and stores it each
+// iteration. That is what LLVM makes of loop_cell. For `*p += x` on a
+// `&mut u64`, LLVM also loads `*p` again in each iteration, so a row with
+// less work than the others would be slower than they are.
 #[inline(never)]
 fn loop_plain(c: &mut Containers, n: u32) -> u64 {
     let p = black_box(&mut c.plain);
+    let mut v = *p;
     for i in 0..n {
-        *p += black_box(i as u64);
+        v += black_box(i as u64);
+        *p = v;
     }
-    *p
+    v
 }
 
 #[inline(never)]
