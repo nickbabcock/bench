@@ -40,12 +40,14 @@ function wasmTools() {
 
 /**
  * Remove the crate hashes ("lockbench[f59a04ab9c98f576]") and the
- * "lockbench::" prefix. A name has a hash on some hosts and not on others,
- * and wasm-tools quotes a name only when it must.
+ * "lockbench::" prefix. A hash comes directly after a crate name, and it has
+ * up to 16 hex digits: the demangler drops leading zeros
+ * ("lockbench[6373eae3de2d88c]"). A slice type ("<[f32]>") does not come
+ * after a name, so it stays.
  */
-const tidy = (line) => line.replace(/\[[0-9a-f]{16}\]/g, "").replace(/\$"?lockbench::(\w+)"?/g, "$$$1");
+const tidy = (line) => line.replace(/(\w)\[[0-9a-f]{1,16}\]/g, "$1").replace(/\$"?lockbench::(\w+)"?/g, "$$$1");
 /** A kernel's `(func …)` line, with or without the hash and the quotes. */
-const KERNEL = /^ {2}\(func \$"?lockbench(?:\[[0-9a-f]{16}\])?::(k_\w+)"?[ )]/;
+const KERNEL = /^ {2}\(func \$"?lockbench(?:\[[0-9a-f]{1,16}\])?::(k_\w+)"?[ )]/;
 
 /** Every top-level `(func …)` of a kernel, by kernel name, as text with the module indent removed. */
 function kernels(text) {
