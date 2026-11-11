@@ -38,8 +38,14 @@ function wasmTools() {
   throw new Error(`No wasm-tools 1.${MIN_MINOR} or later. Run \`mise install\`.`);
 }
 
-/** Remove the crate hashes ("lockbench[f59a04ab9c98f576]") and the "lockbench::" prefix. */
-const tidy = (line) => line.replace(/\[[0-9a-f]{16}\]/g, "").replace(/\$"lockbench::(\w+)"/g, "$$$1");
+/**
+ * Remove the crate hashes ("lockbench[f59a04ab9c98f576]") and the
+ * "lockbench::" prefix. A name has a hash on some hosts and not on others,
+ * and wasm-tools quotes a name only when it must.
+ */
+const tidy = (line) => line.replace(/\[[0-9a-f]{16}\]/g, "").replace(/\$"?lockbench::(\w+)"?/g, "$$$1");
+/** A kernel's `(func …)` line, with or without the hash and the quotes. */
+const KERNEL = /^ {2}\(func \$"?lockbench(?:\[[0-9a-f]{16}\])?::(k_\w+)"?[ )]/;
 
 /** Every top-level `(func …)` of a kernel, by kernel name, as text with the module indent removed. */
 function kernels(text) {
@@ -51,7 +57,7 @@ function kernels(text) {
       if (name) {
         out[name] = lines.join("\n");
       }
-      name = /^ {2}\(func \$"lockbench\[[0-9a-f]{16}\]::(k_\w+)"/.exec(line)?.[1];
+      name = KERNEL.exec(line)?.[1];
       lines = [];
       if (name) {
         // "(func $"…::k_mutex_lock" (;67;) (type 21) (param i32 i64)": keep the name and the signature.
@@ -74,8 +80,13 @@ const listings = Object.fromEntries(
   }),
 );
 const names = Object.keys(listings.abort).sort();
+if (names.length === 0) {
+  const text = execFileSync(bin, ["print", join("src/wasm", builds.abort)], { maxBuffer: 64 << 20 }).toString();
+  const funcs = text.split("\n").filter((l) => /^ {2}\(func /.test(l) && /lockbench/.test(l));
+  throw new Error(`No k_* kernel in the default build. Its lockbench functions:\n${funcs.slice(0, 20).join("\n")}`);
+}
 for (const [build, k] of Object.entries(listings)) {
-  if (Object.keys(k).sort().join() !== names.join() || names.length === 0) {
+  if (Object.keys(k).sort().join() !== names.join()) {
     throw new Error(`The ${build} build has kernels ${Object.keys(k).sort().join(", ")}; the default build has ${names.join(", ")}`);
   }
 }
