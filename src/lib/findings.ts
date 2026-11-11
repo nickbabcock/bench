@@ -154,6 +154,16 @@ export function reproducedIn<C extends Cell, V>(replicates: readonly (readonly C
   };
 }
 
+/**
+ * Replicates index by index across settings shown together: replicate i
+ * has every setting with an i-th repeat, so a setting missing a repeat
+ * drops out of a claim alone, never the others.
+ */
+export function replicatesOf<S, R, C>(settings: readonly S[], repeats: (s: S) => readonly R[], cellOf: (s: S, row: R) => C): C[][] {
+  const n = Math.max(0, ...settings.map((s) => repeats(s).length));
+  return Array.from({ length: n }, (_, i) => settings.flatMap((s) => (repeats(s)[i] ? [cellOf(s, repeats(s)[i])] : [])));
+}
+
 /** A main point's budget, in rendered words (the brief's S2). */
 export const POINT_WORDS = 25;
 

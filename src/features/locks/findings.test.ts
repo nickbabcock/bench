@@ -49,6 +49,12 @@ describe("locks findings", () => {
     const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row())]);
     expect(f.title).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow in Chrome");
   });
+  it("leaves a browser whose builds disagreed out of the claim and its count", () => {
+    const bad = { ...row({ "abort op/mutex": 3 }), checksumsMatch: false };
+    const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row()), cell("Safari", bad)]);
+    expect(f.claim?.cells?.map((c) => c.engine)).toEqual(["Chrome"]);
+    expect(f.claim?.scope).toBe("in Chrome");
+  });
   it("makes no claim within the threshold", () => {
     const f = ask(unwindCost, [cell("Chrome", row({ "unwind op/mutex": 1.02 }))]);
     expect(f.claim).toBeUndefined();
@@ -95,5 +101,8 @@ describe("locks capture validation", () => {
     expect(validateEdition(edition(row({}, 19)))).toContain("raw.samples[abort][op/plain]: expected 20 positive samples");
     expect(validateEdition(edition({ ...row(), checksumsMatch: false }))).toEqual(["raw checksums differ between builds"]);
     expect(validateEdition(edition({ ...row(), variants: ["unwind"] }))).toEqual(["raw must be a locks run that measured the abort build"]);
+    const short = row();
+    delete short.samples.unwind!["op/plain"];
+    expect(validateEdition(edition(short))).toEqual(["raw.samples[unwind] has other workloads than raw.samples[abort]"]);
   });
 });

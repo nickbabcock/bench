@@ -10,7 +10,7 @@ import type { RunContext } from "@/lib/context";
 import type { Edition } from "@/lib/edition";
 import type { MachineRef } from "@/lib/findings";
 import { formatDuration, quantity } from "@/lib/format";
-import { type Benchmark, benchmarkNames } from "@/lib/runRegistry";
+import { type Benchmark, benchmarkNames, benchmarkRoutes } from "@/lib/runRegistry";
 import { editionDate, type NoteItem, runDate } from "./MeasurementNotes";
 import { RawDataLink } from "./RawDataLink";
 import type { Dataset } from "./ReleaseHeader";
@@ -52,13 +52,12 @@ const noopSubscribe = () => () => {};
 /** `undefined` while prerendering, then `probe()`: a browser feature that doesn't change. */
 export const useSupport = (probe: () => boolean) => useSyncExternalStore<boolean | undefined>(noopSubscribe, probe, () => undefined);
 
-const routes = { compression: "/compression", allocation: "/allocation", memory64: "/memory64", build: "/build", locks: "/locks" } as const;
 
 /** Why Run is off while another benchmark runs: "Allocation is running. Go to it to finish or cancel it first." */
 export const OtherRunning = ({ benchmark }: { benchmark: Benchmark }) => (
   <>
     {benchmarkNames[benchmark]} is running.{" "}
-    <Link className="link" to={routes[benchmark]}>
+    <Link className="link" to={benchmarkRoutes[benchmark]}>
       Go to it
     </Link>{" "}
     to finish or cancel it first.

@@ -12,7 +12,7 @@ export const variantInfo: Record<Variant, { label: string; short: string; detail
   abort: {
     label: "panic=abort",
     short: "abort",
-    detail: "The default for every wasm target. std has no poison flag, and Mutex is one Cell<bool>.",
+    detail: "The default for wasm32-unknown-unknown and the WASI targets. std has no poison flag, and Mutex is one Cell<bool>.",
   },
   unwind: {
     label: "panic=unwind",

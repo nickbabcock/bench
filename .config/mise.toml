@@ -75,8 +75,11 @@ run = [
     "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_atomics ./target/locks-atomics/wasm32-unknown-unknown/release/lockbench.wasm",
 ]
 
+# An empty RUSTFLAGS, as the other two builds set theirs in full: flags from
+# the environment must not reach one build only.
 [tasks."build:locks:abort"]
 hide = true
+env = { RUSTFLAGS = "" }
 run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-abort"
 
 # The shipped std for wasm is built for abort, so unwinding needs std rebuilt.

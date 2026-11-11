@@ -10,6 +10,15 @@ export const benchmarkNames: Record<Benchmark, string> = {
   locks: "RefCell vs Mutex",
 };
 
+/** Each benchmark's page, for "Go to it" links while it runs. */
+export const benchmarkRoutes = {
+  compression: "/compression",
+  allocation: "/allocation",
+  memory64: "/memory64",
+  build: "/build",
+  locks: "/locks",
+} as const satisfies Record<Benchmark, string>;
+
 /**
  * One benchmark runs at a time, site-wide. Runs live in module stores, so
  * they keep going when you switch tabs; the tab shows a live lamp, and the

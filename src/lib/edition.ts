@@ -388,11 +388,16 @@ function validateRaw(bench: BenchId, raw: unknown, n: number): string[] {
       if (!isObj(run) || !Array.isArray(run.variants) || !run.variants.includes("abort") || !isObj(run.samples)) {
         return ["raw must be a locks run that measured the abort build"];
       }
+      // Every build has the default build's workloads, so the page can read any cell.
+      const expected = Object.keys(((run.samples as Obj).abort as Obj | undefined) ?? {}).sort().join();
       for (const v of run.variants as string[]) {
         const byWorkload = (run.samples as Obj)[v];
         if (!isObj(byWorkload) || Object.keys(byWorkload).length === 0) {
           errors.push(`raw.samples[${v}] missing`);
           continue;
+        }
+        if (Object.keys(byWorkload).sort().join() !== expected) {
+          errors.push(`raw.samples[${v}] has other workloads than raw.samples[abort]`);
         }
         for (const [w, xs] of Object.entries(byWorkload)) {
           series(`raw.samples[${v}][${w}]`, xs);

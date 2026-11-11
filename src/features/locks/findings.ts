@@ -3,7 +3,7 @@
  * every round, so each question is a paired time ratio with the site's
  * claim rule, gated across independent captures setting by setting.
  */
-import { ask, askReproduced, type Cell, type FigureQuestion, type Finding, reproducedIn, scopeOf, withinBudget } from "@/lib/findings";
+import { ask, askReproduced, replicatesOf, type Cell, type FigureQuestion, type Finding, reproducedIn, scopeOf, withinBudget } from "@/lib/findings";
 import { geomean, isPairedClaim } from "@/lib/stats";
 import { comparisonEffect, ratioWords } from "./claims";
 import type { ResultRow } from "./harness";
@@ -44,7 +44,7 @@ function comparisonQuestion(
         return {};
       }
       const r = geomean(held.map((c) => comparisonEffect(c.row, comparison)!.median));
-      const measured = cells.filter((c) => comparisonEffect(c.row, comparison) !== undefined);
+      const measured = cells.filter((c) => c.row.checksumsMatch && comparisonEffect(c.row, comparison) !== undefined);
       const scope = scopeOf(held, measured);
       const words = ratioWords(r);
       const title = sentence(words) + (scope ? ` ${scope}` : "");
@@ -101,11 +101,6 @@ export function gatedFindings(cells: readonly LocksCell[], replicates: readonly 
   return locksQuestions.map((q) => (replicates === undefined ? ask(q, cells) : replicates.length ? ask(q, cells, replicates) : askReproduced(q, cells, [])));
 }
 
-/** Replicates index by index across settings: replicate i has every setting with an i-th repeat. */
-export function replicatesOf<S>(settings: readonly S[], repeats: (s: S) => readonly ResultRow[], cellOf: (s: S, row: ResultRow) => LocksCell): LocksCell[][] {
-  const n = Math.max(0, ...settings.map((s) => repeats(s).length));
-  return Array.from({ length: n }, (_, i) => settings.flatMap((s) => (repeats(s)[i] ? [cellOf(s, repeats(s)[i])] : [])));
-}
 
 /** One reference setting (an engine on a machine) with its independent repeats. */
 export type EditionSetting = { engine: string; machine: Cell["machine"]; run: ResultRow; replicates: readonly ResultRow[] };

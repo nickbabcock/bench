@@ -38,7 +38,7 @@ import {
 import { MIN_SAMPLE_MS } from "@/lib/bench";
 import { build, buildSummary, hardware } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
-import { ask, cellKey, machineLabel, listText, pct, relativeSentence, relativeTo } from "@/lib/findings";
+import { ask, cellKey, machineLabel, listText, pct, relativeSentence, relativeTo, replicatesOf } from "@/lib/findings";
 import { formatDuration, formatInteger, formatMiB, plural, quantity } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
 import { isPairedClaim, summarize } from "@/lib/stats";
@@ -50,7 +50,6 @@ import {
   figureTitle,
   gatedFindings,
   memory64Questions,
-  replicatesOf,
   memory64Relative,
   type Memory64Cell,
 } from "./findings";

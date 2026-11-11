@@ -37,7 +37,7 @@ import { buildSummary } from "@/lib/build";
 import { isExploratory } from "@/lib/evidence";
 import { type Finding, listText, machineLabel, mainPoints, relativeSentence, relativeTo, withheldNote } from "@/lib/findings";
 import { formatBytes, plural } from "@/lib/format";
-import { benchmarkNames, useActiveRun } from "@/lib/runRegistry";
+import { benchmarkNames, benchmarkRoutes, useActiveRun } from "@/lib/runRegistry";
 import { families, familyInfo, type Family, formatInfo, formats, implementationsOf, plannedConfigs, supportsCompressionStreams } from "./codecs";
 import { BandMap } from "./BandMap";
 import { BrowserFigure } from "./BrowserFigure";
@@ -678,7 +678,7 @@ export const Compression = () => {
             disabledReason: otherRunning ? (
               <>
                 {blocker}{" "}
-                <Link className="link" to={activeRun === "allocation" ? "/allocation" : activeRun === "memory64" ? "/memory64" : "/build"}>
+                <Link className="link" to={benchmarkRoutes[activeRun]}>
                   Go to it
                 </Link>
                 .

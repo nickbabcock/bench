@@ -29,7 +29,7 @@ export type LoadResult = { ok: true; flags: string } | { ok: false; error: strin
 
 /**
  * Instantiate one build and check that it has exactly the workloads the
- * page expects. The flags ("panic=unwind atomics=false")
+ * page expects, in the same order. The flags ("panic=unwind atomics=false")
  * come from the module itself, so a mislabelled build can't pass.
  */
 export async function load(variant: Variant): Promise<LoadResult> {
@@ -40,10 +40,9 @@ export async function load(variant: Variant): Promise<LoadResult> {
       await bindings.default({ module_or_path: wasmPaths[variant] });
       loaded.set(variant, bindings);
     }
-    const ids = new Set(bindings.workloads());
-    const missing = workloadIds.filter((w) => !ids.has(w));
-    if (missing.length || ids.size !== workloadIds.length) {
-      return { ok: false, error: `${variant} build does not match the page: missing ${missing.join(", ") || "none"}, ${ids.size} workloads` };
+    const ids = bindings.workloads();
+    if (ids.join() !== workloadIds.join()) {
+      return { ok: false, error: `${variant} build does not match the page: it has ${ids.join(", ")}` };
     }
     return { ok: true, flags: bindings.build_flags() };
   } catch (e) {

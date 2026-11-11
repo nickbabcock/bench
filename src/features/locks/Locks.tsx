@@ -34,7 +34,7 @@ import {
   useDataset,
 } from "@/components/release";
 import { MIN_SAMPLE_MS } from "@/lib/bench";
-import { build, buildSummary, hardware } from "@/lib/build";
+import { build, hardware } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
 import { listText, machineLabel, type MachineRef } from "@/lib/findings";
 import { plural } from "@/lib/format";
@@ -60,6 +60,23 @@ const sub = (text: React.ReactNode) => <small className="block text-xs leading-t
 /** A paired effect as a figure cell: median, 95% CI, min–max; marked when it clears the claim rule. */
 const effectCell = (e: PairedEffect | undefined): DotRangeCell | undefined =>
   e && Number.isFinite(e.median) ? { value: e.median, range: e.ci ? [e.ci.lo, e.ci.hi] : undefined, faint: [e.min, e.max], highlight: isPairedClaim(e.claim) } : undefined;
+
+/**
+ * How the lock modules are built: the site's buildSummary describes the
+ * other pages' modules (stable rustc, wasm-opt), so it does not apply here.
+ */
+const locksBuild = () => `rustc ${build.rustcNightly}, std built from source, opt-level ${build.optLevel}, LTO ${build.lto}, no wasm-opt`;
+
+/** The workloads a run measured in every build: a capture from an older page can lack a newer workload. */
+const measuredWorkloads = (row: ResultRow) => workloads.filter((w) => row.variants.every((v) => samplesOf(row, v, w.id)?.length));
+
+/** Why there are no main points: nothing cleared the threshold, or claims wait on a second capture. */
+const noPoints = (mine: boolean, pending: number, replicated: boolean) =>
+  mine
+    ? "No comparison cleared the threshold in this run, so there are no main points."
+    : pending === 0
+      ? "No comparison cleared the threshold, so there are no main points."
+      : `${plural(pending, "finding")} cleared the threshold in this capture, but ${replicated ? `${pending === 1 ? "did" : "do"} not hold in the second capture` : `no second independent capture exists yet to reproduce ${pending === 1 ? "it" : "them"}`}, so the table reports ${pending === 1 ? "it" : "them"} instead.`;
 
 /** What to try after an error, by its kind. */
 const recovery = (error: string) => (/worker|import|fetch|load|compile|instantiate/i.test(error) ? "a build or its worker failed to load" : undefined);
@@ -114,7 +131,8 @@ export const Locks = () => {
   ];
 
   // Figure 1: ns per operation, every workload in every build.
-  const costRows: DotRangeRow[] = workloads.map((w) => ({
+  const shownWorkloads = measuredWorkloads(row);
+  const costRows: DotRangeRow[] = shownWorkloads.map((w) => ({
     id: w.id,
     label: w.id,
     detail: w.code,
@@ -219,7 +237,7 @@ export const Locks = () => {
           {[...builds, ...skipped].map((b) => (
             <li key={b}>{b}</li>
           ))}
-          <li>All three use {buildSummary(true)}. No wasm-opt: Binaryen inlines and folds by itself, which would hide what LLVM emitted for each lock.</li>
+          <li>All three use {locksBuild()}. Binaryen inlines and folds by itself, so wasm-opt would hide what LLVM emitted for each lock.</li>
         </ul>
       ),
     },
@@ -274,7 +292,7 @@ export const Locks = () => {
           <MainPoints
             tone={tone}
             points={points}
-            empty={valid ? "No comparison cleared the threshold in both captures, so there are no main points." : "The builds computed different answers, so this run makes no comparison."}
+            empty={valid ? noPoints(showMine, pending.length, entries.some((e) => e.replicates.length > 0)) : "The builds computed different answers, so this run makes no comparison."}
           />
         </Section>
 
@@ -358,7 +376,7 @@ export const Locks = () => {
             id={TABLE_ID}
             caption={`${entry.engine}: median ns per operation; under it, the paired ratio to the workload's baseline row in the same build. Bold clears the threshold.`}
             columns={columns}
-            rows={[...workloads]}
+            rows={shownWorkloads}
             rowKey={(w) => w.id}
             group={(w) => w.group}
             groupHeading={(w) => groupInfo[w.group].title}
@@ -511,7 +529,7 @@ const LocksMeasure = ({ refRun, mine, onShowRun }: { refRun?: ResultRow; mine?: 
 
 const LocksExport = ({ row }: { row: ResultRow }) => {
   const measured = variants.filter((v) => row.variants.includes(v));
-  const lines = measured.flatMap((v) => workloads.map((w) => ({ v, w, st: summarize(samplesOf(row, v, w.id)!), e: baselineEffect(row, v, w.id) })));
+  const lines = measured.flatMap((v) => measuredWorkloads(row).map((w) => ({ v, w, st: summarize(samplesOf(row, v, w.id)!), e: baselineEffect(row, v, w.id) })));
   return (
     <ExportButtons
       baseName={`locks-run-${row.id}-${fileDate(row.startedAt)}`}
@@ -522,7 +540,7 @@ const LocksExport = ({ row }: { row: ResultRow }) => {
             scope: "this run",
             userAgent: navigator.userAgent,
             ...hardware(),
-            build: { ...build, toolchain: buildSummary(true) },
+            build: { ...build, toolchain: locksBuild() },
             method: { minSampleMs: MIN_SAMPLE_MS, order: "rotate", paired: true, unit: "ns per operation", statistic: "median; paired ratios with order-statistic 95% CI" },
             run: row,
             summary: runClaim(row),
@@ -534,14 +552,14 @@ const LocksExport = ({ row }: { row: ResultRow }) => {
       csv={() =>
         toCSV(
           ["run", "build", "workload", "baseline", "median_ns", "min_ns", "max_ns", "rounds", "calls_per_batch", "iterations_per_call", "ratio_to_baseline", "ratio_ci_lo", "ratio_ci_hi", "checksums_match", "toolchain"],
-          lines.map(({ v, w, st, e }) => [row.id, v, w.id, w.baseline, st.median, st.min, st.max, st.n, row.calls[w.id], row.iterations, e?.median, e?.ci?.lo, e?.ci?.hi, row.checksumsMatch, buildSummary(true)]),
+          lines.map(({ v, w, st, e }) => [row.id, v, w.id, w.baseline, st.median, st.min, st.max, st.n, row.calls[w.id], row.iterations, e?.median, e?.ci?.lo, e?.ci?.hi, row.checksumsMatch, locksBuild()]),
         )
       }
       markdown={() =>
-        `${row.context?.browser ?? navigator.userAgent}; ${hardware().hardwareConcurrency ?? "?"} logical cores; ${hardware().platform ?? "unknown platform"}.\nBuild: ${buildSummary(true)}.\n\n` +
+        `${row.context?.browser ?? navigator.userAgent}; ${hardware().hardwareConcurrency ?? "?"} logical cores; ${hardware().platform ?? "unknown platform"}.\nBuild: ${locksBuild()}.\n\n` +
         toMarkdown(
           ["Workload", ...measured.map((v) => `${variantInfo[v].label} ns/op`)],
-          workloads.map((w) => [w.id, ...measured.map((v) => {
+          measuredWorkloads(row).map((w) => [w.id, ...measured.map((v) => {
             const e = baselineEffect(row, v, w.id);
             return `${nsPerOp(row, v, w.id).toFixed(3)}${e ? ` (${e.median.toFixed(2)}× ${w.baseline}, ${effectWords(e)})` : ""}`;
           })]),

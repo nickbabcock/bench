@@ -144,14 +144,17 @@ pub struct Containers {
 }
 
 impl Containers {
+    /// Each container starts at its own non-zero value. A read workload
+    /// never writes, so its digest then depends on the value that its
+    /// kernel reads, and the check across builds compares something.
     fn new() -> Box<Containers> {
         Box::new(Containers {
-            plain: 0,
-            cell: Cell::new(0),
-            atomic: AtomicU64::new(0),
-            refcell: RefCell::new(0),
-            mutex: Mutex::new(0),
-            rwlock: RwLock::new(0),
+            plain: 3,
+            cell: Cell::new(5),
+            atomic: AtomicU64::new(7),
+            refcell: RefCell::new(11),
+            mutex: Mutex::new(13),
+            rwlock: RwLock::new(17),
             rc_refcell: Rc::new(RefCell::new(State::default())),
             arc_mutex: Arc::new(Mutex::new(State::default())),
         })
@@ -341,18 +344,19 @@ fn app_arc_mutex(c: &mut Containers, n: u32) -> u64 {
 
 type Driver = fn(&mut Containers, u32) -> u64;
 
-/// Every workload, in page order.
+/// Every workload, in page order: the same order as `workloads` in
+/// src/features/locks/workloads.ts, which the worker checks.
 const WORKLOADS: &[(&str, Driver)] = &[
     ("op/plain", op_plain),
     ("op/cell", op_cell),
     ("op/atomic_relaxed", op_atomic_relaxed),
     ("op/refcell_write", op_refcell_write),
-    ("op/plain_read", op_plain_read),
-    ("op/refcell_read", op_refcell_read),
     ("op/refcell_try_write", op_refcell_try_write),
     ("op/mutex", op_mutex),
     ("op/mutex_try", op_mutex_try),
     ("op/rwlock_write", op_rwlock_write),
+    ("op/plain_read", op_plain_read),
+    ("op/refcell_read", op_refcell_read),
     ("op/rwlock_read", op_rwlock_read),
     ("loop/plain", loop_plain),
     ("loop/cell", loop_cell),

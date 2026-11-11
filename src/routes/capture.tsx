@@ -166,7 +166,7 @@ async function runBench(bench: BenchId, input: CorpusId | null, samples: number,
         input: null,
         corpus: [],
         method: rotateMethod(samples, true),
-        params: { iterations: LOCKS_ITERATIONS, builds: lockVariants, measured: run.variants, skipped: run.skipped, flags: run.flags, workloads: lockWorkloads, calls: run.calls },
+        params: { iterations: LOCKS_ITERATIONS, wasmOpt: "none", builds: lockVariants, measured: run.variants, skipped: run.skipped, flags: run.flags, workloads: lockWorkloads, calls: run.calls },
         raw: run,
       };
     }
