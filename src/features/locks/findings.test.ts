@@ -102,7 +102,8 @@ describe("locks capture validation", () => {
     expect(validateEdition(edition({ ...row(), checksumsMatch: false }))).toEqual(["raw checksums differ between builds"]);
     expect(validateEdition(edition({ ...row(), variants: ["unwind"] }))).toEqual(["raw must be a locks run that measured the abort build"]);
     const short = row();
-    delete short.samples.unwind!["op/plain"];
+    const { "op/plain": _dropped, ...rest } = short.samples.unwind!;
+    short.samples.unwind = rest as typeof short.samples.abort;
     expect(validateEdition(edition(short))).toEqual(["raw.samples[unwind] has other workloads than raw.samples[abort]"]);
   });
 });

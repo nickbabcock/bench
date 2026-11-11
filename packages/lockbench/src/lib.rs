@@ -200,32 +200,23 @@ op_write!(op_rwlock_write, rwlock, k_rwlock_write, |x| *x
     .read()
     .unwrap());
 
-#[inline(never)]
-fn op_plain_read(c: &mut Containers, n: u32) -> u64 {
-    let mut s = 0u64;
-    for _ in 0..n {
-        s = s.wrapping_add(k_plain_read(black_box(&c.plain)));
-    }
-    s
+/// An op driver for a read kernel: it sums what each call reads.
+macro_rules! op_read {
+    ($name:ident, $field:ident, $kernel:ident) => {
+        #[inline(never)]
+        fn $name(c: &mut Containers, n: u32) -> u64 {
+            let mut s = 0u64;
+            for _ in 0..n {
+                s = s.wrapping_add($kernel(black_box(&c.$field)));
+            }
+            s
+        }
+    };
 }
 
-#[inline(never)]
-fn op_refcell_read(c: &mut Containers, n: u32) -> u64 {
-    let mut s = 0u64;
-    for _ in 0..n {
-        s = s.wrapping_add(k_refcell_read(black_box(&c.refcell)));
-    }
-    s
-}
-
-#[inline(never)]
-fn op_rwlock_read(c: &mut Containers, n: u32) -> u64 {
-    let mut s = 0u64;
-    for _ in 0..n {
-        s = s.wrapping_add(k_rwlock_read(black_box(&c.rwlock)));
-    }
-    s
-}
+op_read!(op_plain_read, plain, k_plain_read);
+op_read!(op_refcell_read, refcell, k_refcell_read);
+op_read!(op_rwlock_read, rwlock, k_rwlock_read);
 
 // ---------------------------------------------------------------------------
 // loop: the lock and the loop in one function, so LLVM sees the lock code.

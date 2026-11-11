@@ -25,12 +25,20 @@ const loaded = new Map<Variant, Bindings>();
 const benches = new Map<string, Bench>();
 const key = (variant: Variant, workload: WorkloadId) => `${variant}\u0000${workload}`;
 
+/** What each build must report about itself (`build_flags` in the crate). */
+const expectedFlags: Record<Variant, string> = {
+  abort: "panic=abort atomics=false",
+  unwind: "panic=unwind atomics=false",
+  atomics: "panic=abort atomics=true",
+};
+
 export type LoadResult = { ok: true; flags: string } | { ok: false; error: string };
 
 /**
  * Instantiate one build and check that it has exactly the workloads the
  * page expects, in the same order. The flags ("panic=unwind atomics=false")
- * come from the module itself, so a mislabelled build can't pass.
+ * come from the module itself and must match the build asked for, so a
+ * mislabelled build does not load.
  */
 export async function load(variant: Variant): Promise<LoadResult> {
   try {
@@ -44,7 +52,11 @@ export async function load(variant: Variant): Promise<LoadResult> {
     if (ids.join() !== workloadIds.join()) {
       return { ok: false, error: `${variant} build does not match the page: it has ${ids.join(", ")}` };
     }
-    return { ok: true, flags: bindings.build_flags() };
+    const flags = bindings.build_flags();
+    if (flags !== expectedFlags[variant]) {
+      return { ok: false, error: `${variant} build reports ${flags}, not ${expectedFlags[variant]}` };
+    }
+    return { ok: true, flags };
   } catch (e) {
     return { ok: false, error: e instanceof Error ? e.message : String(e) };
   }

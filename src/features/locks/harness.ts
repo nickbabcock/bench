@@ -75,15 +75,17 @@ export async function runLocks(
       }
     }
 
-    // Every build must compute the same thing before any of it is timed.
-    let checksumsMatch = true;
+    // Every build must compute the same thing before any of it is timed:
+    // a run whose builds disagree stops here, so no figure shows its times.
     for (const w of workloadIds) {
-      const digests = new Set<number>();
+      const digests = new Map<Variant, number>();
       for (const v of variants) {
-        digests.add(await call(worker.checksum(v, w, ITERATIONS)));
+        digests.set(v, await call(worker.checksum(v, w, ITERATIONS)));
         await call(worker.prepare(v, w));
       }
-      checksumsMatch &&= digests.size === 1;
+      if (new Set(digests.values()).size > 1) {
+        throw new Error(`The builds computed different digests for ${w}: ${[...digests].map(([v, d]) => `${v} ${d}`).join(", ")}`);
+      }
     }
 
     // One call count per workload, shared by every build: the fastest build
@@ -124,7 +126,7 @@ export async function runLocks(
       onProgress(i + 1, "Sampling", 1);
     }
 
-    return { iterations: ITERATIONS, variants, skipped, flags, calls, samples, checksumsMatch };
+    return { iterations: ITERATIONS, variants, skipped, flags, calls, samples, checksumsMatch: true };
   } finally {
     signal.removeEventListener("abort", terminate);
     worker[releaseProxy]();

@@ -34,13 +34,13 @@ import {
   useDataset,
 } from "@/components/release";
 import { MIN_SAMPLE_MS } from "@/lib/bench";
-import { build, hardware } from "@/lib/build";
+import { build, buildSummary, hardware } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
 import { listText, machineLabel, type MachineRef } from "@/lib/findings";
 import { plural } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
 import { isPairedClaim, type PairedEffect, summarize } from "@/lib/stats";
-import { baselineEffect, comparisonEffect, effectWords, nsPerOp, runClaim, samplesOf } from "./claims";
+import { baselineEffect, comparisonEffect, effectWords, runClaim, samplesOf } from "./claims";
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
 import { reference } from "./reference";
@@ -61,11 +61,8 @@ const sub = (text: React.ReactNode) => <small className="block text-xs leading-t
 const effectCell = (e: PairedEffect | undefined): DotRangeCell | undefined =>
   e && Number.isFinite(e.median) ? { value: e.median, range: e.ci ? [e.ci.lo, e.ci.hi] : undefined, faint: [e.min, e.max], highlight: isPairedClaim(e.claim) } : undefined;
 
-/**
- * How the lock modules are built: the site's buildSummary describes the
- * other pages' modules (stable rustc, wasm-opt), so it does not apply here.
- */
-const locksBuild = () => `rustc ${build.rustcNightly}, std built from source, opt-level ${build.optLevel}, LTO ${build.lto}, no wasm-opt`;
+/** How the lock modules are built: the nightly, std from source, their own target features and no wasm-opt. */
+const locksBuild = () => buildSummary(true, true);
 
 /** The workloads a run measured in every build: a capture from an older page can lack a newer workload. */
 const measuredWorkloads = (row: ResultRow) => workloads.filter((w) => row.variants.every((v) => samplesOf(row, v, w.id)?.length));
@@ -152,9 +149,9 @@ export const Locks = () => {
       id: c.id.replace(/:.*$/, ""),
       label: c.label,
       value: NaN,
-      cells: Object.fromEntries(vs.filter((v) => measured.includes(v)).map((v) => [v, effectCell(comparisonEffect(row, of(v)[i]))])),
+      cells: Object.fromEntries(vs.map((v) => [v, effectCell(comparisonEffect(row, of(v)[i]))])),
     }));
-  const lockRows = ratioRows(lockComparisons("abort"), lockComparisons, variants);
+  const lockRows = ratioRows(lockComparisons("abort"), lockComparisons, measured);
   const others = (["unwind", "atomics"] as const).filter((v) => measured.includes(v));
   const buildRows = ratioRows(buildComparisons("unwind"), (v) => buildComparisons(v as "unwind" | "atomics"), others);
   const ratioAxis = (title: string) => ({
@@ -248,7 +245,7 @@ export const Locks = () => {
     },
     {
       term: "Checks",
-      detail: "Before timing, each workload runs once on fresh containers in every build; a run counts only if every build returns the same digest.",
+      detail: "Before timing, each workload runs once on fresh containers in every build. If any build returns a different digest, the run stops before it times anything.",
     },
     {
       term: "Engines inline",
@@ -559,10 +556,13 @@ const LocksExport = ({ row }: { row: ResultRow }) => {
         `${row.context?.browser ?? navigator.userAgent}; ${hardware().hardwareConcurrency ?? "?"} logical cores; ${hardware().platform ?? "unknown platform"}.\nBuild: ${locksBuild()}.\n\n` +
         toMarkdown(
           ["Workload", ...measured.map((v) => `${variantInfo[v].label} ns/op`)],
-          measuredWorkloads(row).map((w) => [w.id, ...measured.map((v) => {
-            const e = baselineEffect(row, v, w.id);
-            return `${nsPerOp(row, v, w.id).toFixed(3)}${e ? ` (${e.median.toFixed(2)}× ${w.baseline}, ${effectWords(e)})` : ""}`;
-          })]),
+          measuredWorkloads(row).map((w) => [
+            w.id,
+            ...measured.map((v) => {
+              const { st, e } = lines.find((l) => l.v === v && l.w.id === w.id)!;
+              return `${st.median.toFixed(3)}${e ? ` (${e.median.toFixed(2)}× ${w.baseline}, ${effectWords(e)})` : ""}`;
+            }),
+          ]),
           [false, ...measured.map(() => true)],
         ) +
         "\n"

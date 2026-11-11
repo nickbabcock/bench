@@ -151,7 +151,7 @@ const exnrefProbe = new Uint8Array([
   0x40, 0x00, 0x0b, 0x0b,
 ]);
 
-/** Why a build can't load in this browser, or undefined when it can. */
+/** Why a build can not load in this browser, or undefined when it can. */
 export function unsupported(variant: Variant): string | undefined {
   switch (variant) {
     case "abort":

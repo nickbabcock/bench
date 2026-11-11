@@ -5,6 +5,7 @@ import { corpora } from "@/features/compression/corpora";
 import { STREAM_ALLOWANCE } from "@/features/compression/findings";
 import { formatInteger } from "@/lib/format";
 import { MIN_WARMUP_MS as MEMORY64_WARMUP_MS } from "@/features/memory64/harness";
+import { ITERATIONS as LOCK_ITERATIONS } from "@/features/locks/workloads";
 import { AllocationWorkload } from "./AllocationWorkload";
 import { MAX_DRIFT, MAX_DRIFT_OUTLIERS } from "@/lib/edition";
 import { MIN_PAIRED_ROUNDS, PRACTICAL_FLOOR, medianCI } from "@/lib/stats";
@@ -250,8 +251,8 @@ export const Method = () => (
               One crate built three times with the same nightly compiler, std built from source: <Flag>panic=abort</Flag>,{" "}
               <Flag>panic=unwind</Flag> and <Flag>+atomics</Flag>. No <Flag>wasm-opt</Flag>.
             </li>
-            <li>Each sample is a batch of 4,096-iteration calls; the page reports ns per operation.</li>
-            <li>Every workload in every build runs in every round. Before timing, each build must compute the same digest for each workload.</li>
+            <li>Each sample is a batch of {formatInteger(LOCK_ITERATIONS)}-iteration calls; the page reports ns per operation.</li>
+            <li>Every workload in every build runs in every round. Before timing, each build must compute the same digest for each workload, or the run stops.</li>
           </ul>
         </Prose>
       </Section>
