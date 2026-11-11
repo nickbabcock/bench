@@ -17,7 +17,9 @@ mise run build:corpus
 mise run dev
 ```
 
-`build:wasm` builds the modules the Compression, Allocation and Memory64 pages load into `src/wasm/`.
+`build:wasm` builds the modules the Compression, Allocation, Memory64 and RefCell vs Mutex pages load into `src/wasm/`.
+
+`build:locks` (part of `build:wasm`) builds `packages/lockbench` three times on the pinned nightly, with std built from source each time: `panic=abort`, `panic=unwind` and `+atomics`. The module comment in `packages/lockbench/src/lib.rs` gives the design rules of the workloads. To capture only this benchmark, without the others: `mise run capture -- --bench locks`.
 
 `build:variants` builds the Build settings page's modules: a few crates rebuilt with SIMD off and on, each with wasm-opt off, `-Os` and `-O3`, into `src/wasm/variants/` with a manifest of sizes and flags per variant.
 

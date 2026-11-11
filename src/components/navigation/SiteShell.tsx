@@ -13,6 +13,7 @@ const navigation: { name: string; to: string; run?: Benchmark }[] = [
   { name: "Allocation", to: "/allocation", run: "allocation" },
   { name: "Memory64", to: "/memory64", run: "memory64" },
   { name: "Build settings", to: "/build", run: "build" },
+  { name: "RefCell vs Mutex", to: "/locks", run: "locks" },
   { name: "Method", to: "/method" },
 ];
 

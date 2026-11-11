@@ -1,12 +1,13 @@
 import { create } from "zustand";
 
-export type Benchmark = "compression" | "allocation" | "memory64" | "build";
+export type Benchmark = "compression" | "allocation" | "memory64" | "build" | "locks";
 
 export const benchmarkNames: Record<Benchmark, string> = {
   compression: "Compression",
   allocation: "Allocation",
   memory64: "Memory64",
   build: "Build settings",
+  locks: "RefCell vs Mutex",
 };
 
 /**

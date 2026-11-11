@@ -52,7 +52,7 @@ const noopSubscribe = () => () => {};
 /** `undefined` while prerendering, then `probe()`: a browser feature that doesn't change. */
 export const useSupport = (probe: () => boolean) => useSyncExternalStore<boolean | undefined>(noopSubscribe, probe, () => undefined);
 
-const routes = { compression: "/compression", allocation: "/allocation", memory64: "/memory64", build: "/build" } as const;
+const routes = { compression: "/compression", allocation: "/allocation", memory64: "/memory64", build: "/build", locks: "/locks" } as const;
 
 /** Why Run is off while another benchmark runs: "Allocation is running. Go to it to finish or cancel it first." */
 export const OtherRunning = ({ benchmark }: { benchmark: Benchmark }) => (

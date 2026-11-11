@@ -10,6 +10,7 @@ members = [
     "packages/br-write",
     "packages/corpus",
     "packages/libdeflate",
+    "packages/lockbench",
     "packages/lz4",
     "packages/memory64",
     "packages/miniz",

@@ -17,7 +17,7 @@
  *   --repeat <n>         independent captures of everything (default 2, for the reproduction gate)
  *   --only-repeat <k>    take only repeat k of n (to redo one repeat)
  *   --browsers <list>    chrome,firefox,safari (default: all that are available)
- *   --bench <list>       compression,allocation,memory64,build (default: all)
+ *   --bench <list>       compression,allocation,memory64,build,locks (default: all)
  *   --inputs <list>      compression inputs (default: dickens,xml,x-ray,samba)
  *   --subjects <list>    build only: recapture these subjects (zstd-decode,alloc,…) and merge
  *                        their rows into the existing capture of the same edition, machine,
@@ -48,10 +48,10 @@ import { capturePath, driftFails, formatEdition, MACHINE_ID, mergeSubjects, repe
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 let OUT = join(ROOT, "src/data/editions");
 const PUBLIC = join(ROOT, ".output/public");
-const ALL_BENCHES = ["compression", "allocation", "memory64", "build"];
+const ALL_BENCHES = ["compression", "allocation", "memory64", "build", "locks"];
 const ALL_INPUTS = ["dickens", "xml", "x-ray", "samba"];
-/** Samples per row: compression n ≥ 10, build n = 15; allocation and memory64 raised from 5 to 20 (each takes seconds). */
-const SAMPLES = { compression: 10, allocation: 20, memory64: 20, build: 15 };
+/** Samples per row: compression n ≥ 10, build n = 15; allocation, memory64 and locks 20. */
+const SAMPLES = { compression: 10, allocation: 20, memory64: 20, build: 15, locks: 20 };
 /** Per-capture limit; a capture that runs longer is reported and skipped (`--timeout <min>`). */
 let CAPTURE_TIMEOUT_MS = 45 * 60_000;
 /** If the page does not start a capture in this time, the capture fails. */

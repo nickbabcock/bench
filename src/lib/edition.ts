@@ -32,8 +32,8 @@
 
 export const EDITION_SCHEMA = 1;
 
-export type BenchId = "compression" | "allocation" | "memory64" | "build";
-export const benchIds: readonly BenchId[] = ["compression", "allocation", "memory64", "build"];
+export type BenchId = "compression" | "allocation" | "memory64" | "build" | "locks";
+export const benchIds: readonly BenchId[] = ["compression", "allocation", "memory64", "build", "locks"];
 
 /** Browsers the capture script drives. */
 export type BrowserId = "chrome" | "firefox" | "safari";
@@ -380,6 +380,26 @@ function validateRaw(bench: BenchId, raw: unknown, n: number): string[] {
         if (row.checksumsMatch !== true) {
           errors.push(`raw[${i}] checksums differ between variants`);
         }
+      }
+      break;
+    }
+    case "locks": {
+      const run = raw as Obj;
+      if (!isObj(run) || !Array.isArray(run.variants) || !run.variants.includes("abort") || !isObj(run.samples)) {
+        return ["raw must be a locks run that measured the abort build"];
+      }
+      for (const v of run.variants as string[]) {
+        const byWorkload = (run.samples as Obj)[v];
+        if (!isObj(byWorkload) || Object.keys(byWorkload).length === 0) {
+          errors.push(`raw.samples[${v}] missing`);
+          continue;
+        }
+        for (const [w, xs] of Object.entries(byWorkload)) {
+          series(`raw.samples[${v}][${w}]`, xs);
+        }
+      }
+      if (run.checksumsMatch !== true) {
+        errors.push("raw checksums differ between builds");
       }
       break;
     }

@@ -18,7 +18,7 @@ rust_nightly = "nightly-2026-11-01"
 
 [tasks."build:wasm"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --release --workspace --exclude memory64",
+    "cargo build --target wasm32-unknown-unknown --release --workspace --exclude memory64 --exclude lockbench",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bumpalo.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bump_scope.wasm",
@@ -47,6 +47,7 @@ run = [
     "wasm-opt -Os ./src/wasm/zune_bg.wasm -o ./src/wasm/zune_bg.wasm",
     "node packages/alloc-workload/sizes.mjs",
     "mise run build:memory64",
+    "mise run build:locks",
 ]
 
 # Both wasm32 and wasm64 builds use the same nightly compiler and flags
@@ -61,6 +62,38 @@ run = [
     "wasm-opt -Os ./src/wasm/memory64_wasm64_bg.wasm -o ./src/wasm/memory64_wasm64_bg.wasm",
 ]
 
+# RefCell against Mutex: one crate built three times on the pinned nightly,
+# each with std built from source so the panic strategy and the atomics
+# feature are the only differences. No wasm-opt: Binaryen inlines and folds
+# by itself, which would hide what LLVM emitted for each lock. A separate
+# target dir per build keeps the RUSTFLAGS of one from rebuilding another.
+[tasks."build:locks"]
+depends = ["build:locks:abort", "build:locks:unwind", "build:locks:atomics"]
+run = [
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_abort ./target/locks-abort/wasm32-unknown-unknown/release/lockbench.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_unwind ./target/locks-unwind/wasm32-unknown-unknown/release/lockbench.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_atomics ./target/locks-atomics/wasm32-unknown-unknown/release/lockbench.wasm",
+]
+
+[tasks."build:locks:abort"]
+hide = true
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-abort"
+
+# The shipped std for wasm is built for abort, so unwinding needs std rebuilt.
+# LLVM emits the standard exception handling instructions (exnref).
+[tasks."build:locks:unwind"]
+hide = true
+env = { RUSTFLAGS = "-C panic=unwind" }
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_unwind --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-unwind"
+
+# +atomics makes std pick the futex Mutex and RwLock. The memory is shared
+# and imported, as wasm-bindgen's thread support expects; the page never
+# starts a second thread.
+[tasks."build:locks:atomics"]
+hide = true
+env = { RUSTFLAGS = "-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--shared-memory -C link-arg=--max-memory=67108864 -C link-arg=--import-memory -C link-arg=--export=__wasm_init_tls -C link-arg=--export=__tls_size -C link-arg=--export=__tls_align -C link-arg=--export=__tls_base" }
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-atomics"
+
 # The build-settings page: a few crates rebuilt with SIMD off/on and wasm-opt
 # none/-Os/-O3, into src/wasm/variants/ with a manifest per variant.
 [tasks."build:variants"]
@@ -68,7 +101,7 @@ run = "node scripts/build-variants.ts"
 
 [tasks."build:profiling"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace --exclude memory64",
+    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace --exclude memory64 --exclude lockbench",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bumpalo.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bump_scope.wasm",
