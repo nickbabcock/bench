@@ -37,17 +37,17 @@ import {
 import { MIN_SAMPLE_MS } from "@/lib/bench";
 import { build, hardware, toolchainSummary } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
-import { listText, machineLabel, type MachineRef } from "@/lib/findings";
+import { listText, machineLabel, type MachineRef, pct, times } from "@/lib/findings";
 import { plural } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
 import { isPairedClaim, type PairedEffect, PRACTICAL_FLOOR, summarize } from "@/lib/stats";
-import { baselineEffect, comparisonEffect, effectWords, runClaim, samplesOf } from "./claims";
+import { baselineEffect, comparisonEffect, effectWords, ratioWords, runClaim, samplesOf } from "./claims";
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
 import { listings, LocksListings } from "./Listings";
 import { reference } from "./reference";
 import { cancelRun, markViewed, MAX_ROUNDS, MIN_ROUNDS, selectRun, setSampleCount, startRun, useLocksSession } from "./session";
-import { buildComparisons, type Comparison, groupInfo, lockComparisons, type Variant, variantInfo, variants, type Workload, workloads } from "./workloads";
+import { buildComparisons, type Comparison, groupInfo, lockComparisons, type Variant, variantInfo, variants, type Workload, type WorkloadId, workloads } from "./workloads";
 
 const TABLE_ID = "locks-table";
 const TITLE = "RefCell against Mutex in WebAssembly";
@@ -56,7 +56,7 @@ const TITLE = "RefCell against Mutex in WebAssembly";
 type Entry = { id: string; engine: string; short: string; machine: MachineRef; row: ResultRow; replicates: readonly ResultRow[] };
 
 /** "0.734 ns". */
-const ns = (v: number) => (Number.isFinite(v) ? `${v < 10 ? v.toFixed(3) : v.toFixed(1)} ns` : "—");
+const ns = (v: number) => (Number.isFinite(v) ? `${v < 10 ? v.toFixed(3) : v.toFixed(1)}\u00a0ns` : "—");
 const sub = (text: React.ReactNode) => <small className="block text-xs leading-tight text-ink-3">{text}</small>;
 
 /** A paired effect as a figure cell: median, 95% CI, min–max; marked when it clears the claim rule. */
@@ -134,21 +134,12 @@ export const Locks = () => {
     { id: "measure", title: "Measure on this machine" },
   ];
 
-  // Figure 1: ns per operation, every workload in every build.
+  // Figure 1: ns per operation, every workload in the default build. Figure 3 and the table give the other builds.
   const shownWorkloads = measuredWorkloads(row);
-  const costRows: DotRangeRow[] = shownWorkloads.map((w) => ({
-    id: w.id,
-    label: w.id,
-    detail: w.code,
-    group: groupInfo[w.group].title,
-    value: NaN,
-    cells: Object.fromEntries(
-      measured.map((v) => {
-        const st = summarize(samplesOf(row, v, w.id)!);
-        return [v, { value: st.median, range: [st.min, st.max] as const }];
-      }),
-    ),
-  }));
+  const costRows: DotRangeRow[] = shownWorkloads.map((w) => {
+    const st = summarize(samplesOf(row, "abort", w.id)!);
+    return { id: w.id, label: w.id, detail: w.code, group: groupInfo[w.group].title, value: st.median, range: [st.min, st.max] };
+  });
 
   // Figure 2 and 3: paired ratios, one row per comparison, one facet per build.
   const ratioRows = (template: Comparison[], of: (v: Variant) => Comparison[], vs: readonly Variant[]): DotRangeRow[] =>
@@ -264,7 +255,7 @@ export const Locks = () => {
   ];
 
   const editionMonth = showMine || !current ? undefined : monthOf(current.edition.id);
-  const notice = [ref?.withheldNote, ...(ref?.unmeasured ?? []).map((b) => `${b} was not measured.`)].filter(Boolean).join(" ");
+  const notice = ref?.withheldNote ?? "";
 
   return (
     <HighlightScope>
@@ -304,8 +295,8 @@ export const Locks = () => {
         <Section id="cost">
           <Figure
             n={1}
-            title={`Time per operation, ${entry.engine}`}
-            subtitle={`ns per operation: median and min–max of ${plural(n, "round")}, each a batch of ${row.iterations}-iteration calls. Lower is better.`}
+            title={`Time per operation in the default build, ${entry.engine}`}
+            subtitle={`ns per operation with panic=abort: median and min–max of ${plural(n, "round")}, each a batch of ${row.iterations}-iteration calls. Lower is better. Figure 3 and the table give the other builds.`}
             legend={
               <Legend
                 items={[
@@ -317,15 +308,15 @@ export const Locks = () => {
           >
             <DotRange
               rows={costRows}
-              facets={facets}
               tone={tone}
               tableId={TABLE_ID}
               labelWidth={170}
               axis={{ kind: "linear", zero: true, title: "ns per operation", format: (v) => v.toFixed(2) }}
               renderValue={(_r, c) => ns(c.value)}
-              label={`Time per operation in each build, ${entry.engine}`}
+              label={`Time per operation in the default build, ${entry.engine}`}
             />
           </Figure>
+          <InTime row={row} engine={entry.engine} />
         </Section>
 
         <Section id="locks">
@@ -420,6 +411,53 @@ export const Locks = () => {
         <ResultsTarget>{session.announcement}</ResultsTarget>
       </ReleaseBody>
     </HighlightScope>
+  );
+};
+
+/** One frame at 60 Hz, in ms. */
+const FRAME_MS = 1000 / 60;
+
+/**
+ * The default build's Mutex ÷ RefCell ratio as time: ns for each lock, ms
+ * for one million locks, and the two rows where the difference gets smaller.
+ */
+const InTime = ({ row, engine }: { row: ResultRow; engine: string }) => {
+  const median = (w: WorkloadId) => {
+    const s = samplesOf(row, "abort", w);
+    return s?.length ? summarize(s).median : undefined;
+  };
+  const [mutex, refcell, heldMutex, heldRefcell, plain] = (["op/mutex", "op/refcell_write", "held/mutex", "held/refcell", "loop/plain"] as const).map(median);
+  const [op, , app] = lockComparisons("abort").map((c) => comparisonEffect(row, c));
+  if (mutex === undefined || refcell === undefined || op?.claim !== "slower") {
+    return null;
+  }
+  // ns for each lock × one million locks = ms.
+  const extra = mutex - refcell;
+  return (
+    <Prose className="mt-6">
+      <h3 className="text-fig font-bold text-ink">What the ratio is in time</h3>
+      <p>
+        In {engine}, one Mutex lock took {ns(mutex)} and one RefCell borrow took {ns(refcell)}. That is {times(op.median)} as long, but only {ns(extra)}{" "}
+        more for each lock. One million locks add {extra.toFixed(1)} ms: {pct(extra / FRAME_MS)} of one frame at 60 Hz.
+      </p>
+      <p>
+        The ratio is large because both operations are very small. It is important only in a hot loop that takes the lock again for each item. Two rows
+        show how the difference gets smaller:
+      </p>
+      <ul>
+        {app ? (
+          <li>
+            In a method that does a small quantity of work in the guard (app/), Arc&lt;Mutex&gt; took {ratioWords(app.median)} Rc&lt;RefCell&gt;.
+          </li>
+        ) : null}
+        {heldMutex !== undefined && heldRefcell !== undefined && plain !== undefined ? (
+          <li>
+            If the code takes the guard one time before the loop (held/), the loop has no lock in it. Then held/mutex took {ns(heldMutex)} for each
+            iteration, held/refcell took {ns(heldRefcell)}, and loop/plain, which has no lock, took {ns(plain)}.
+          </li>
+        ) : null}
+      </ul>
+    </Prose>
   );
 };
 
