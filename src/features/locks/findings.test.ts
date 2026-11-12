@@ -49,6 +49,12 @@ describe("locks findings", () => {
     const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row())]);
     expect(f.title).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow in Chrome");
   });
+  it("gives the other direction its own clause where browsers disagree", () => {
+    const f = ask(unwindCost, [cell("Chrome", row({ "unwind op/mutex": 1.4 })), cell("Firefox", row({ "unwind op/mutex": 0.8 }))]);
+    expect(f.title).toBe("With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome, but 20% less time in Firefox");
+    expect(f.claim?.text).toBe("With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome, but 20% less time in Firefox (Figure 3).");
+    expect(f.claim?.key).toBe("locks.build-op/mutex:unwind:slower");
+  });
   it("makes no claim within the threshold", () => {
     const f = ask(unwindCost, [cell("Chrome", row({ "unwind op/mutex": 1.02 }))]);
     expect(f.claim).toBeUndefined();

@@ -16,7 +16,8 @@ export type LocksCell = Cell & { row: ResultRow };
  * A question about one comparison. A cell holds a claim when its paired
  * ratio clears the rule and every replicate repeats that direction in the
  * same cell. Where cells disagree in direction, the larger group is the
- * claim (ties go to "slower") and the scope names where it holds.
+ * claim (ties go to "slower") and the scope names where it holds; a
+ * "but" clause gives the other direction and where it holds.
  */
 function comparisonQuestion(
   figure: number,
@@ -40,18 +41,22 @@ function comparisonQuestion(
       if (held.length === 0) {
         return {};
       }
-      const r = geomean(held.map((c) => comparisonEffect(c.row, comparison)!.median));
+      const ratio = (cs: readonly LocksCell[]) => geomean(cs.map((c) => comparisonEffect(c.row, comparison)!.median));
       const measured = cells.filter((c) => comparisonEffect(c.row, comparison) !== undefined);
       const scope = scopeOf(held, measured);
-      const words = ratioWords(r);
-      const title = sentence(words) + (scope ? ` ${scope}` : "");
-      const say = (where: string) => `${sentence(words)}${where ? ` ${where}` : ""} (Figure ${figure}).`;
-      const count = `in ${held.length} of ${measured.length} browsers`;
+      const words = ratioWords(ratio(held));
+      // Cells that reproduce the other direction get their own clause, so a reader does not take them as "about the same".
+      const other = held === slower ? faster : slower;
+      const otherWords = other.length ? ratioWords(ratio(other)).replace(/ (as|than)$/, "") : "";
+      const but = (where: string) => (other.length ? `, but ${otherWords} ${where}` : "");
+      const title = sentence(words) + (scope ? ` ${scope}` : "") + but(scopeOf(other, measured));
+      const say = (where: string, otherWhere: string) => `${sentence(words)}${where ? ` ${where}` : ""}${but(otherWhere)} (Figure ${figure}).`;
+      const count = (cs: readonly LocksCell[]) => `in ${cs.length} of ${measured.length} browsers`;
       return {
         title,
         claim: {
           key: `locks.${comparison.id}:${held === slower ? "slower" : "faster"}`,
-          text: withinBudget([say(scope), say(held.length === measured.length ? "" : count)]),
+          text: withinBudget([say(scope, scopeOf(other, measured)), say(held.length === measured.length ? "" : count(held), count(other))]),
           scope,
           cells: held,
         },

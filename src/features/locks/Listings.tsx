@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { ChoiceChips, Figure, Prose } from "@/components/release";
 import { summarize } from "@/lib/stats";
-import { samplesOf } from "./claims";
+import { ns, samplesOf } from "./claims";
 import type { ResultRow } from "./harness";
 import { type Variant, variantInfo, variants, type WorkloadId, workloadById } from "./workloads";
 
@@ -54,8 +54,6 @@ export const instructionCount = (text: string) =>
     .split("\n")
     .slice(1)
     .filter((l) => !/^\s*(end\b|\)|\(local\b|$)/.test(l)).length;
-
-const ns = (v: number) => `${v.toFixed(3)} ns`;
 
 /** One kernel: its name, the Rust it runs, its size, its measured time and its text. */
 const Panel = ({ side, text, time }: { side: Side; text: string | undefined; time: string }) => (

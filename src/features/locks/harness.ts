@@ -49,8 +49,14 @@ type Cell = { variant: Variant; workload: WorkloadId };
  */
 function visibilityWatch() {
   let hidden = document.hidden;
+  /** The page went to the background, or came back: record it, and end a wait for the foreground. */
+  let waiting: (() => void) | undefined;
   const onChange = () => {
     hidden ||= document.hidden;
+    if (!document.hidden) {
+      waiting?.();
+      waiting = undefined;
+    }
   };
   document.addEventListener("visibilitychange", onChange);
   return {
@@ -58,22 +64,17 @@ function visibilityWatch() {
       hidden = document.hidden;
     },
     wasHidden: () => hidden,
-    /** Resolves when the page is in the foreground. */
+    /** Resolves when the page is in the foreground. A cancelled run does not wait for it: `abortable` rejects first. */
     visible: () =>
-      new Promise<void>((resolve) => {
-        if (!document.hidden) {
-          resolve();
-          return;
-        }
-        const check = () => {
-          if (!document.hidden) {
-            document.removeEventListener("visibilitychange", check);
-            resolve();
-          }
-        };
-        document.addEventListener("visibilitychange", check);
-      }),
-    dispose: () => document.removeEventListener("visibilitychange", onChange),
+      document.hidden
+        ? new Promise<void>((resolve) => {
+            waiting = resolve;
+          })
+        : Promise.resolve(),
+    dispose: () => {
+      document.removeEventListener("visibilitychange", onChange);
+      waiting = undefined;
+    },
   };
 }
 
@@ -134,23 +135,27 @@ export async function runLocks(
 
     // One call count per workload, shared by every build: the fastest build
     // sets it, so each batch of every build clears the timer by a margin.
-    // A background page is slower, which gives counts that are too small.
-    if (document.hidden) {
-      onProgress(0, PAUSED, 1 / 3);
-      await call(watch.visible());
-    }
-    onProgress(0, "Calibrating batches", 1 / 3);
+    // A background page is slower, which gives counts that are too small:
+    // if the page goes to the background during calibration, calibrate again.
     const calls = {} as Record<WorkloadId, number>;
-    for (const w of workloadIds) {
-      const { repetitions } = await calibrate(async (n) => {
-        let fastest = Infinity;
-        for (const v of variants) {
-          fastest = Math.min(fastest, await call(worker.run(v, w, ITERATIONS, n)));
-        }
-        return fastest;
-      });
-      calls[w] = repetitions;
-    }
+    do {
+      if (document.hidden) {
+        onProgress(0, PAUSED, 1 / 3);
+        await call(watch.visible());
+      }
+      watch.reset();
+      onProgress(0, "Calibrating batches", 1 / 3);
+      for (const w of workloadIds) {
+        const { repetitions } = await calibrate(async (n) => {
+          let fastest = Infinity;
+          for (const v of variants) {
+            fastest = Math.min(fastest, await call(worker.run(v, w, ITERATIONS, n)));
+          }
+          return fastest;
+        });
+        calls[w] = repetitions;
+      }
+    } while (watch.wasHidden());
 
     const cells: Cell[] = variants.flatMap((variant) => workloadIds.map((workload) => ({ variant, workload })));
     const round = async (index: number, record?: (c: Cell, ms: number) => void) => {

@@ -3,6 +3,9 @@ import { isPairedClaim, type PairedEffect, pairedEffect, pairedRatios } from "@/
 import type { ResultRow } from "./harness";
 import { type Comparison, lockComparisons, type Variant, type WorkloadId, workloadById } from "./workloads";
 
+/** A time as the page and its figures show it: "0.734 ns", "12.5 ns". The space does not break. */
+export const ns = (v: number) => (Number.isFinite(v) ? `${v < 10 ? v.toFixed(3) : v.toFixed(1)} ns` : "—");
+
 /** One cell's ns per operation, one per round; undefined when the build was not measured. */
 export const samplesOf = (row: ResultRow, variant: Variant, workload: WorkloadId) => row.samples[variant]?.[workload];
 

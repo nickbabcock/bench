@@ -41,7 +41,7 @@ import { listText, machineLabel, type MachineRef, pct, times } from "@/lib/findi
 import { plural } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
 import { isPairedClaim, type PairedEffect, PRACTICAL_FLOOR, summarize } from "@/lib/stats";
-import { baselineEffect, comparisonEffect, effectWords, ratioWords, runClaim, samplesOf } from "./claims";
+import { baselineEffect, comparisonEffect, effectWords, ns, ratioWords, runClaim, samplesOf } from "./claims";
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
 import { listings, LocksListings } from "./Listings";
@@ -55,8 +55,6 @@ const TITLE = "RefCell against Mutex in WebAssembly";
 /** One engine's run: one browser in the switch, and a cell for the findings. */
 type Entry = { id: string; engine: string; short: string; machine: MachineRef; row: ResultRow; replicates: readonly ResultRow[] };
 
-/** "0.734 ns". */
-const ns = (v: number) => (Number.isFinite(v) ? `${v < 10 ? v.toFixed(3) : v.toFixed(1)}\u00a0ns` : "—");
 const sub = (text: React.ReactNode) => <small className="block text-xs leading-tight text-ink-3">{text}</small>;
 
 /** A paired effect as a figure cell: median, 95% CI, min–max; marked when it clears the claim rule. */
@@ -447,7 +445,8 @@ const InTime = ({ row, engine }: { row: ResultRow; engine: string }) => {
       <ul>
         {app ? (
           <li>
-            In a method that does a small quantity of work in the guard (app/), Arc&lt;Mutex&gt; took {ratioWords(app.median)} Rc&lt;RefCell&gt;.
+            In a method that does a small quantity of work in the guard (app/),{" "}
+            {isPairedClaim(app.claim) ? <>Arc&lt;Mutex&gt; took {ratioWords(app.median)} Rc&lt;RefCell&gt;.</> : <>Arc&lt;Mutex&gt; and Rc&lt;RefCell&gt; took about the same time.</>}
           </li>
         ) : null}
         {heldMutex !== undefined && heldRefcell !== undefined && plain !== undefined ? (

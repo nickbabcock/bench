@@ -165,6 +165,12 @@ async function runBench(bench: BenchId, input: CorpusId | null, samples: number,
         throw new Error(s.error ?? "locks run did not finish");
       }
       const run = s.results[0];
+      // A reference capture measures every build. A missing one is almost
+      // always a setup fault (no cross-origin isolation, an old browser).
+      const missing = lockVariants.filter((v) => !run.variants.includes(v));
+      if (missing.length) {
+        throw new Error(`locks did not measure ${missing.map((v) => `${v} (${run.skipped[v] ?? "no reason given"})`).join(", ")}`);
+      }
       return {
         input: null,
         corpus: [],
