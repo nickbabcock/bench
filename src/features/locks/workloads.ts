@@ -29,7 +29,7 @@ export const groupInfo: Record<Group, { title: string; detail: string }> = {
   op: {
     title: "One call per operation",
     detail:
-      "Each iteration calls a small function marked `#[inline(never)]`, so LLVM keeps it as a call (the browser can still inline it). Writes are compared with `op/plain`, reads with `op/plain_read`.",
+      "Each iteration calls a small function marked `#[inline(never)]`, so LLVM keeps it as a call (the browser can still inline it). Writes are compared with `op/plain`, reads with `op/plain_read`, and each `try_` row with the same lock taken the normal way.",
   },
   loop: {
     title: "Lock inside a loop",
@@ -83,9 +83,9 @@ export const workloads: readonly Workload[] = [
   { id: "op/cell", group: "op", code: "c.set(c.get() + x)", baseline: "op/plain" },
   { id: "op/atomic_relaxed", group: "op", code: "c.fetch_add(x, Relaxed)", baseline: "op/plain" },
   { id: "op/refcell_write", group: "op", code: "*c.borrow_mut() += x", baseline: "op/plain" },
-  { id: "op/refcell_try_write", group: "op", code: "if let Ok(mut g) = c.try_borrow_mut()", baseline: "op/plain" },
+  { id: "op/refcell_try_write", group: "op", code: "if let Ok(mut g) = c.try_borrow_mut()", baseline: "op/refcell_write" },
   { id: "op/mutex", group: "op", code: "*m.lock().unwrap() += x", baseline: "op/plain" },
-  { id: "op/mutex_try", group: "op", code: "if let Ok(mut g) = m.try_lock()", baseline: "op/plain" },
+  { id: "op/mutex_try", group: "op", code: "if let Ok(mut g) = m.try_lock()", baseline: "op/mutex" },
   { id: "op/rwlock_write", group: "op", code: "*l.write().unwrap() += x", baseline: "op/plain" },
   { id: "op/plain_read", group: "op", code: "*c", baseline: "op/plain_read" },
   { id: "op/refcell_read", group: "op", code: "*c.borrow()", baseline: "op/plain_read" },
@@ -127,13 +127,15 @@ const pair = (id: string, label: string, subject: [WorkloadId, Variant], referen
   reference: { workload: reference[0], variant: reference[1] },
 });
 
-/** Figure 2: what a Mutex costs against a RefCell, in each build. */
+/**
+ * Figure 2: a Mutex against a RefCell doing the same work, in each build.
+ * Only Mutex ÷ RefCell rows: a comparison of two uses of one lock goes in
+ * the table's baseline column instead.
+ */
 export const lockComparisons = (v: Variant): Comparison[] => [
   pair(`mutex-refcell-op:${v}`, "Mutex ÷ RefCell, one call", ["op/mutex", v], ["op/refcell_write", v]),
   pair(`mutex-refcell-loop:${v}`, "Mutex ÷ RefCell, in a loop", ["loop/mutex", v], ["loop/refcell_write", v]),
   pair(`arc-rc-app:${v}`, "Arc<Mutex> ÷ Rc<RefCell>, method", ["app/arc_mutex", v], ["app/rc_refcell", v]),
-  pair(`try-lock:${v}`, "try_lock ÷ lock", ["op/mutex_try", v], ["op/mutex", v]),
-  pair(`held-mutex:${v}`, "Guard held ÷ lock per iteration", ["held/mutex", v], ["loop/mutex", v]),
 ];
 
 /** Figure 3: what a build costs against the default, for the same workload. */
