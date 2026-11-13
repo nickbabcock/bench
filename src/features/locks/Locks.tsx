@@ -459,13 +459,13 @@ const InTime = ({ row, engine }: { row: ResultRow; engine: string }) => {
   // held/mutex against loop/plain, its baseline: is a loop with the lock taken once as fast as one with no lock?
   const held = baselineEffect(row, "abort", "held/mutex");
   /** "took 1.39× as long as `RefCell`" or "took about the same time as `RefCell`", by the claim rule. */
-  const took = (e: PairedEffect, reference: React.ReactNode) =>
+  const took = (e: PairedEffect, other: React.ReactNode) =>
     isPairedClaim(e.claim) ? (
       <>
-        took {ratioWords(e.median)} {reference}
+        took {ratioWords(e.median)} {other}
       </>
     ) : (
-      <>took about the same time as {reference}</>
+      <>took about the same time as {other}</>
     );
   return (
     <Prose className="mt-6">

@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { createElement, Fragment } from "react";
 import { figureId } from "./Figure";
 import { keepTogether } from "./nb";
 
@@ -34,7 +34,8 @@ export const Cited = ({ text, tableHref, tableId }: CitedProps) => {
             <Fragment key={key}>
               {pieces.length === 1
                 ? keepTogether(part)
-                : pieces.map((p, j) => <Fragment key={`${j}:${p}`}>{j % 2 ? <code>{p}</code> : keepTogether(p)}</Fragment>)}
+                : // Separate children, not a list, so the pieces need no keys.
+                  createElement(Fragment, null, ...pieces.map((p, j) => (j % 2 ? createElement("code", null, p) : createElement(Fragment, null, keepTogether(p)))))}
             </Fragment>
           );
         }
