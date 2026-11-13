@@ -45,6 +45,7 @@ import { baselineEffect, comparisonEffect, effectWords, ns, ratioWords, runClaim
 import { editionFindings, figureTitle, gatedFindings, type LocksCell } from "./findings";
 import type { ResultRow } from "./harness";
 import { listings, LocksListings } from "./Listings";
+import { ticks } from "./ticks";
 import { reference } from "./reference";
 import { cancelRun, markViewed, MAX_ROUNDS, MIN_ROUNDS, selectRun, setSampleCount, startRun, useLocksSession } from "./session";
 import { buildComparisons, type Comparison, groupInfo, lockComparisons, type Variant, variantInfo, variants, type Workload, type WorkloadId, workloads } from "./workloads";
@@ -125,9 +126,9 @@ export const Locks = () => {
   const sections = [
     { id: "points", title: "Main points" },
     { id: "cost", title: "Time per operation" },
-    { id: "locks", title: "Mutex against RefCell" },
-    { id: "builds", title: "What each build costs" },
-    ...(listings ? [{ id: "code", title: "The WebAssembly" }] : []),
+    { id: "locks", title: "Mutex vs RefCell" },
+    { id: "builds", title: "panic=unwind and +atomics" },
+    ...(listings ? [{ id: "code", title: "Why the Mutex is slower" }] : []),
     { id: "table", title: "Results" },
     { id: "measure", title: "Measure on this machine" },
   ];
@@ -207,8 +208,11 @@ export const Locks = () => {
     ),
   ];
 
-  const builds = measured.map((v) => `${variantInfo[v].label}: ${variantInfo[v].detail}${row.flags[v] ? ` The module reports ${row.flags[v]}.` : ""}`);
-  const skipped = variants.filter((v) => row.skipped[v]).map((v) => `${variantInfo[v].label} was not measured: ${row.skipped[v]}.`);
+  // Each build's note: its label, then text with code in backticks.
+  const builds = [
+    ...measured.map((v) => ({ v, text: `: ${variantInfo[v].detail}${row.flags[v] ? ` The module reports \`${row.flags[v]}\`.` : ""}` })),
+    ...variants.filter((v) => row.skipped[v]).map((v) => ({ v, text: ` was not measured: ${row.skipped[v]}.` })),
+  ];
   const notes: NoteItem[] = [
     ...(showMine ? [conditionsNote(mine, `${plural(n, "round")}, each sample a batch of at least ${MIN_SAMPLE_MS} ms of ${row.iterations} iterations per call.`)] : []),
     ...(row.backgroundRounds ? [{ term: "Background", detail: backgroundText(row.backgroundRounds) }] : []),
@@ -218,7 +222,7 @@ export const Locks = () => {
         <ul className="list-disc space-y-1 pl-5">
           {(Object.keys(groupInfo) as (keyof typeof groupInfo)[]).map((g) => (
             <li key={g}>
-              <b className="font-semibold">{g}</b>: {groupInfo[g].detail}
+              <b className="font-semibold">{g}/</b>: {ticks(groupInfo[g].detail)}
             </li>
           ))}
         </ul>
@@ -228,26 +232,30 @@ export const Locks = () => {
       term: "Builds",
       detail: (
         <ul className="list-disc space-y-1 pl-5">
-          {[...builds, ...skipped].map((b) => (
-            <li key={b}>{b}</li>
+          {builds.map((b) => (
+            <li key={b.v}>
+              <b className="font-semibold">{variantInfo[b.v].label}</b>
+              {ticks(b.text)}
+            </li>
           ))}
-          <li>All three use {locksBuild()}. Binaryen inlines and folds by itself, so wasm-opt would hide what LLVM emitted for each lock.</li>
+          <li>All three use {locksBuild()}. wasm-opt is skipped because Binaryen does its own inlining and folding, which would hide what LLVM generated for each lock.</li>
         </ul>
       ),
     },
     {
       term: "Design",
       detail:
-        "The containers live on the heap for the whole run, so the optimizer can not delete a lock because only the timed function sees it. Reads compare with a plain read, not with a read-modify-write. There is no sequentially consistent atomic row, because no build here lowers it differently from the relaxed one.",
+        "The data lives on the heap for the whole run, so the optimizer can't delete a lock just because only the timed function can see it. Reads are compared with a plain read, not with a read-modify-write. There is no sequentially consistent atomic row: no build here compiles it any differently from the relaxed one.",
     },
     {
       term: "Checks",
-      detail: "Before timing, each workload runs once on fresh containers in every build. If any build returns a different digest, the run stops before it times anything.",
+      detail: "Before timing, every workload runs once in every build on fresh data. If any build gets a different result, the run stops before it times anything.",
     },
     {
-      term: "Engines inline",
-      detail:
-        "#[inline(never)] binds LLVM only. An engine can inline a kernel into its loop (V8 does), so an op row is the cost of the operation as the engine runs it, not of a call.",
+      term: "Browsers inline",
+      detail: ticks(
+        "`#[inline(never)]` only applies to LLVM. The browser can still inline the function into its loop (V8 does), so the `op/` rows measure the operation as the browser runs it, not the cost of a call.",
+      ),
     },
     ...(showMine ? [] : shown.filter((s) => s !== current).map(captureNote)),
   ];
@@ -294,7 +302,7 @@ export const Locks = () => {
           <Figure
             n={1}
             title={`Time per operation in the default build, ${entry.engine}`}
-            subtitle={`ns per operation with panic=abort: median and min–max of ${plural(n, "round")}, each a batch of ${row.iterations}-iteration calls. Lower is better. Figure 3 and the table give the other builds.`}
+            subtitle={`Nanoseconds per operation in the default build (panic=abort). The dot is the median of ${plural(n, "round")}; the line runs from the fastest round to the slowest. Lower is faster. Figure 3 and the results table cover the other two builds.`}
             legend={
               <Legend
                 items={[
@@ -321,7 +329,7 @@ export const Locks = () => {
           <Figure
             n={2}
             title={figureTitle(figureFindings, 2)}
-            subtitle={`Time ratios paired by round, in ${entry.engine}: median, 95% CI and min–max of ${plural(n, "round")}. Above 1, the first takes longer.`}
+            subtitle={`How many times longer the first operation takes than the second, in ${entry.engine}. Above 1× means the first is slower. Every round runs both, so each round gives one ratio; the dot is the median of ${plural(n, "round")}.`}
             legend={ratioLegend}
           >
             <DotRange
@@ -343,7 +351,7 @@ export const Locks = () => {
             <Figure
               n={3}
               title={figureTitle(figureFindings, 3)}
-              subtitle={`Each workload's time in a build ÷ its time in the default (panic=abort) build, paired by round, in ${entry.engine}. RefCell is the control.`}
+              subtitle={`How many times longer each operation takes in the panic=unwind and +atomics builds than in the default build, in ${entry.engine}. RefCell should not change between builds, so its row is the control.`}
               legend={ratioLegend}
             >
               <DotRange
@@ -374,7 +382,7 @@ export const Locks = () => {
         <Section id="table">
           <DataTable
             id={TABLE_ID}
-            caption={`${entry.engine}: median ns per operation; under it, the paired ratio to the workload's baseline row in the same build. Bold clears the threshold.`}
+            caption={`Median nanoseconds per operation in ${entry.engine}. Under each time: how many times longer it took than its baseline row in the same build. Bold means the difference clears the threshold.`}
             columns={columns}
             rows={shownWorkloads}
             rowKey={(w) => w.id}
@@ -416,43 +424,58 @@ export const Locks = () => {
 const FRAME_MS = 1000 / 60;
 
 /**
- * The default build's Mutex ÷ RefCell ratio as time: ns for each lock, ms
- * for one million locks, and the two rows where the difference gets smaller.
+ * What the default build's Mutex ÷ RefCell ratio means in time: ns per
+ * lock, ms per million locks, and the two rows where the gap gets smaller.
  */
 const InTime = ({ row, engine }: { row: ResultRow; engine: string }) => {
   const median = (w: WorkloadId) => {
     const s = samplesOf(row, "abort", w);
     return s?.length ? summarize(s).median : undefined;
   };
-  const [mutex, refcell, heldMutex, heldRefcell, plain] = (["op/mutex", "op/refcell_write", "held/mutex", "held/refcell", "loop/plain"] as const).map(median);
+  const [mutex, refcell, heldMutex, plain] = (["op/mutex", "op/refcell_write", "held/mutex", "loop/plain"] as const).map(median);
   const [op, , app] = lockComparisons("abort").map((c) => comparisonEffect(row, c));
   if (mutex === undefined || refcell === undefined || op?.claim !== "slower") {
     return null;
   }
-  // ns for each lock × one million locks = ms.
+  // ns per lock × one million locks = ms.
   const extra = mutex - refcell;
+  // held/mutex against loop/plain, its baseline: is a loop with the lock taken once as fast as one with no lock?
+  const held = baselineEffect(row, "abort", "held/mutex");
   return (
     <Prose className="mt-6">
-      <h3 className="text-fig font-bold text-ink">What the ratio is in time</h3>
+      <h3 className="text-fig font-bold text-ink">What {times(op.median)} means in practice</h3>
       <p>
-        In {engine}, one Mutex lock took {ns(mutex)} and one RefCell borrow took {ns(refcell)}. That is {times(op.median)} as long, but only {ns(extra)}{" "}
-        more for each lock. One million locks add {extra.toFixed(1)} ms: {pct(extra / FRAME_MS)} of one frame at 60 Hz.
+        In {engine}, a <code>Mutex</code> lock took {ns(mutex)} and a <code>RefCell</code> borrow took {ns(refcell)}. The <code>Mutex</code> is{" "}
+        {times(op.median)} slower, but the gap is only {ns(extra)} per lock. A million locks add {extra.toFixed(1)} ms, about {pct(extra / FRAME_MS)} of a
+        60 fps frame.
       </p>
-      <p>
-        The ratio is large because both operations are very small. It is important only in a hot loop that takes the lock again for each item. Two rows
-        show how the difference gets smaller:
-      </p>
+      <p>So the gap matters only in hot code that locks over and over. Two other rows show how it shrinks:</p>
       <ul>
         {app ? (
           <li>
-            In a method that does a small quantity of work in the guard (app/),{" "}
-            {isPairedClaim(app.claim) ? <>Arc&lt;Mutex&gt; took {ratioWords(app.median)} Rc&lt;RefCell&gt;.</> : <>Arc&lt;Mutex&gt; and Rc&lt;RefCell&gt; took about the same time.</>}
+            <b>Real work hides most of it.</b> When the lock wraps a method call that does a little work (the <code>app/</code> rows),{" "}
+            {isPairedClaim(app.claim) ? (
+              <>
+                <code>Arc&lt;Mutex&gt;</code> took {app.median < op.median ? "only " : ""}
+                {ratioWords(app.median)} <code>Rc&lt;RefCell&gt;</code>.
+              </>
+            ) : (
+              <>
+                <code>Arc&lt;Mutex&gt;</code> and <code>Rc&lt;RefCell&gt;</code> took about the same time.
+              </>
+            )}
           </li>
         ) : null}
-        {heldMutex !== undefined && heldRefcell !== undefined && plain !== undefined ? (
+        {held && heldMutex !== undefined && plain !== undefined ? (
           <li>
-            If the code takes the guard one time before the loop (held/), the loop has no lock in it. Then held/mutex took {ns(heldMutex)} for each
-            iteration, held/refcell took {ns(heldRefcell)}, and loop/plain, which has no lock, took {ns(plain)}.
+            <b>Lock once, not on every iteration.</b> When the code takes the lock before the loop instead of inside it (the <code>held/</code> rows),{" "}
+            {held.claim === "same" ? (
+              <>the loop runs as fast as one with no lock at all: {ns(plain)} per iteration.</>
+            ) : (
+              <>
+                each iteration took {ns(heldMutex)}, against {ns(plain)} with no lock at all.
+              </>
+            )}
           </li>
         ) : null}
       </ul>

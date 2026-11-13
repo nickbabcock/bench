@@ -92,11 +92,11 @@ export const LocksListings = ({ n, row, engine }: { n: number; row: ResultRow; e
     <>
       <Figure
         n={n}
-        title="The WebAssembly of one borrow and one lock"
+        title="A RefCell borrow and a Mutex lock, as WebAssembly"
         subtitle={
           <>
-            Each kernel is a Rust function marked <code>#[inline(never)]</code>, as wasm-bindgen ships it. This is what the engine compiles. The time is the
-            median of the op row in Figure 1.
+            Each operation is a Rust function marked <code>#[inline(never)]</code>, shown as wasm-bindgen outputs it: exactly what the browser compiles. The
+            time is the median from the results table for the chosen build.
           </>
         }
         source={`The modules this page runs, printed by ${listings.printer.replace(/ \(.*\)$/, "")}. Crate hashes are removed.`}
@@ -116,20 +116,21 @@ export const LocksListings = ({ n, row, engine }: { n: number; row: ResultRow; e
         </div>
       </Figure>
       <Prose className="mt-6">
-        <h3 className="text-fig font-bold text-ink">What the listings show</h3>
+        <h3 className="text-fig font-bold text-ink">What the code shows</h3>
         <ul>
           <li>
-            <b>panic=abort.</b> The RefCell borrow is one load and one branch. LLVM removes the write of the borrow flag and its restore, because no code
-            between them can read the flag. The Mutex stores its flag twice and checks it with <code>assert_eq!</code>. The panic call for that check
-            takes the address of a local, so the function also moves the stack pointer down and back up.
+            <b>panic=abort (the default).</b> The <code>RefCell</code> borrow is one load and one branch. LLVM can see that nothing reads the borrow flag
+            while it is set, so it never writes it. The <code>Mutex</code> sets and clears its lock flag, and checks it with an <code>assert_eq!</code>.
+            The panic path of that assert needs a stack frame, so the function also moves the stack pointer down and back up.
           </li>
           <li>
-            <b>panic=unwind.</b> The RefCell borrow does not change: a RefCell has no poison flag. The Mutex also reads its poison flag, and it reads the
-            global panic count twice: once when it locks, and once when it unlocks. If the count is not zero, it calls a slow path.
+            <b>panic=unwind.</b> The <code>RefCell</code> borrow does not change: a <code>RefCell</code> can't be poisoned. The <code>Mutex</code> now also
+            checks its poison flag, and reads the global panic count twice, once to lock and once to unlock.
           </li>
           <li>
-            <b>+atomics.</b> The Mutex becomes a futex lock: an atomic compare-exchange to lock and an atomic exchange to unlock. The calls for a contended
-            lock are in the code, but they do not run here, because only one thread uses the lock. The RefCell borrow does not change.
+            <b>+atomics.</b> The <code>Mutex</code> becomes a real lock built on atomic instructions: a compare-and-swap to lock and a swap to unlock. The
+            code that waits for another thread is there but never runs, because only one thread uses the lock. The <code>RefCell</code> borrow does not
+            change.
           </li>
         </ul>
       </Prose>

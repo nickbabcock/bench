@@ -71,7 +71,7 @@ export const lockCost = comparisonQuestion(
   lockComparisons("abort")[0],
   "How long does one Mutex lock take against one RefCell borrow in the default build?",
   "Mutex ÷ RefCell, per build",
-  (w) => `In the default build, one Mutex lock took ${w} one RefCell borrow`,
+  (w) => `In the default build, a Mutex lock took ${w} a RefCell borrow`,
 );
 
 /** Figure 3: what panic=unwind does to one Mutex lock. */
@@ -80,7 +80,7 @@ export const unwindCost = comparisonQuestion(
   buildComparisons("unwind").find((c) => c.subject.workload === "op/mutex")!,
   "How long does one Mutex lock take with panic=unwind against the default build?",
   "Each build ÷ the default build, same workload",
-  (w) => `With panic=unwind, one Mutex lock took ${w} in the default build`,
+  (w) => `With panic=unwind, a Mutex lock took ${w} with panic=abort`,
 );
 
 /** Figure 3: what +atomics does to one Mutex lock. */
@@ -89,7 +89,7 @@ export const atomicsCost = comparisonQuestion(
   buildComparisons("atomics").find((c) => c.subject.workload === "op/mutex")!,
   "How long does one Mutex lock take with +atomics against the default build?",
   "Each build ÷ the default build, same workload",
-  (w) => `With +atomics, one Mutex lock took ${w} in the default build`,
+  (w) => `With +atomics, a Mutex lock took ${w} without it`,
 );
 
 export const locksQuestions = [lockCost, unwindCost, atomicsCost] as const;

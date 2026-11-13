@@ -11,15 +11,15 @@ export const variants: readonly Variant[] = ["abort", "unwind", "atomics"];
 export const variantInfo: Record<Variant, { label: string; detail: string }> = {
   abort: {
     label: "panic=abort",
-    detail: "The default for wasm32-unknown-unknown and the WASI targets. std has no poison flag, and Mutex is one Cell<bool>.",
+    detail: "The default for `wasm32-unknown-unknown` and WASI. A panic can never be caught, so `Mutex` has no poison flag: it is a single `Cell<bool>`.",
   },
   unwind: {
     label: "panic=unwind",
-    detail: "std rebuilt for unwinding. The poison flag and the panic count checks come back into every lock.",
+    detail: "std rebuilt so that panics unwind. Poisoning comes back: every lock checks the poison flag and the global panic count.",
   },
   atomics: {
     label: "+atomics",
-    detail: "std rebuilt with atomics and shared memory. Mutex and RwLock become futex locks; no second thread runs.",
+    detail: "std rebuilt with thread support (atomics and shared memory). `Mutex` and `RwLock` become real futex locks, though only one thread ever runs here.",
   },
 };
 
@@ -27,22 +27,22 @@ export type Group = "op" | "loop" | "held" | "app";
 
 export const groupInfo: Record<Group, { title: string; detail: string }> = {
   op: {
-    title: "One call for each operation",
+    title: "One call per operation",
     detail:
-      "Each iteration calls a kernel that Rust marks #[inline(never)]. LLVM keeps the call; the engine can still inline it. Write rows compare with op/plain, read rows with op/plain_read.",
+      "Each iteration calls a small function marked `#[inline(never)]`, so LLVM keeps it as a call (the browser can still inline it). Writes are compared with `op/plain`, reads with `op/plain_read`.",
   },
   loop: {
-    title: "Lock and loop in one function",
+    title: "Lock inside a loop",
     detail:
-      "The lock is in the loop body, so LLVM sees all of its code. The container comes from outside the function, as shared state does, so LLVM can not delete the lock.",
+      "The lock is taken on every iteration, in the same function as the loop, so LLVM can optimize across it. The value comes from outside the function, like real shared state, so LLVM can't remove the lock.",
   },
   held: {
-    title: "Guard held across the loop",
-    detail: "The same loop with one guard taken before it: what hoisting the lock out of a hot loop gives.",
+    title: "Lock held for the whole loop",
+    detail: "The same loop, but the lock is taken once before the loop instead of on every iteration.",
   },
   app: {
-    title: "Shared owner and a method call",
-    detail: "Rc<RefCell<State>> against Arc<Mutex<State>>, with a method that reads and writes three fields: the shape of application code.",
+    title: "Shared object with a method call",
+    detail: "`Rc<RefCell<State>>` vs `Arc<Mutex<State>>`, calling a method that updates three fields: closer to real application code.",
   },
 };
 

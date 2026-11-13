@@ -35,24 +35,24 @@ describe("locks claims", () => {
     const r = row({ "abort op/mutex": 3 });
     expect(comparisonEffect(r, lockComparisons("abort")[0])?.median).toBeCloseTo(3, 6);
     expect(comparisonEffect(row({}, 20, ["abort"]), lockComparisons("unwind")[0])).toBeUndefined();
-    expect(runClaim(r)).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow.");
+    expect(runClaim(r)).toBe("In the default build, a Mutex lock took 3× as long as a RefCell borrow.");
   });
 });
 
 describe("locks findings", () => {
   it("claims Mutex against RefCell with its scope", () => {
     const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row({ "abort op/mutex": 3 }))]);
-    expect(f.claim?.text).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow in Chrome and Firefox (Figure 2).");
+    expect(f.claim?.text).toBe("In the default build, a Mutex lock took 3× as long as a RefCell borrow in Chrome and Firefox (Figure 2).");
     expect(f.claim?.key).toBe("locks.mutex-refcell-op:abort:slower");
   });
   it("names the browsers where a claim holds", () => {
     const f = ask(lockCost, [cell("Chrome", row({ "abort op/mutex": 3 })), cell("Firefox", row())]);
-    expect(f.title).toBe("In the default build, one Mutex lock took 3× as long as one RefCell borrow in Chrome");
+    expect(f.title).toBe("In the default build, a Mutex lock took 3× as long as a RefCell borrow in Chrome");
   });
   it("gives the other direction its own clause where browsers disagree", () => {
     const f = ask(unwindCost, [cell("Chrome", row({ "unwind op/mutex": 1.4 })), cell("Firefox", row({ "unwind op/mutex": 0.8 }))]);
-    expect(f.title).toBe("With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome, but 20% less time in Firefox");
-    expect(f.claim?.text).toBe("With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome, but 20% less time in Firefox (Figure 3).");
+    expect(f.title).toBe("With panic=unwind, a Mutex lock took 40% longer than with panic=abort in Chrome, but 20% less time in Firefox");
+    expect(f.claim?.text).toBe("With panic=unwind, a Mutex lock took 40% longer than with panic=abort in Chrome, but 20% less time in Firefox (Figure 3).");
     expect(f.claim?.key).toBe("locks.build-op/mutex:unwind:slower");
   });
   it("makes no claim within the threshold", () => {
@@ -65,7 +65,7 @@ describe("locks findings", () => {
     expect(askReproduced(unwindCost, [slow], []).claim).toBeUndefined();
     expect(askReproduced(unwindCost, [slow], [[cell("Chrome", row())]]).claim).toBeUndefined();
     expect(askReproduced(unwindCost, [slow], [[cell("Chrome", row({ "unwind op/mutex": 1.35 }))]]).claim?.text).toBe(
-      "With panic=unwind, one Mutex lock took 40% longer than in the default build in Chrome (Figure 3).",
+      "With panic=unwind, a Mutex lock took 40% longer than with panic=abort in Chrome (Figure 3).",
     );
   });
   it("reports claims that wait on a second capture, or that it did not reproduce", () => {
@@ -80,7 +80,7 @@ describe("locks findings", () => {
     const [lock, unwind, atomics] = editionFindings([{ engine: "Chrome", machine: m4, run: r, replicates: [r] }]).findings;
     expect(lock.claim).toBeDefined();
     expect(unwind.claim).toBeUndefined();
-    expect(atomics.claim?.text).toBe("With +atomics, one Mutex lock took 2× as long as in the default build in Chrome (Figure 3).");
+    expect(atomics.claim?.text).toBe("With +atomics, a Mutex lock took 2× as long as without it in Chrome (Figure 3).");
   });
 });
 

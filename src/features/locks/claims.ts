@@ -39,6 +39,6 @@ export const effectWords = (e: PairedEffect) =>
 export const runClaim = (row: ResultRow) => {
   const e = comparisonEffect(row, lockComparisons("abort")[0])!;
   return isPairedClaim(e.claim)
-    ? `In the default build, one Mutex lock took ${ratioWords(e.median)} one RefCell borrow.`
-    : "In the default build, one Mutex lock and one RefCell borrow took about the same time.";
+    ? `In the default build, a Mutex lock took ${ratioWords(e.median)} a RefCell borrow.`
+    : "In the default build, a Mutex lock and a RefCell borrow took about the same time.";
 };
