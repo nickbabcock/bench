@@ -15,11 +15,13 @@ export const variantInfo: Record<Variant, { label: string; detail: string }> = {
   },
   unwind: {
     label: "panic=unwind",
-    detail: "std rebuilt so that panics unwind. Poisoning comes back: every lock checks the poison flag and the global panic count.",
+    detail:
+      "std rebuilt so that panics unwind. Poisoning comes back: every `Mutex` lock and `RwLock` write checks the poison flag and the global panic count, and an `RwLock` read checks the poison flag.",
   },
   atomics: {
     label: "+atomics",
-    detail: "std rebuilt with thread support (atomics and shared memory). `Mutex` and `RwLock` become real futex locks, though only one thread ever runs here.",
+    detail:
+      "std rebuilt with thread support (atomics and shared memory). `Mutex` and `RwLock` become futex locks, which can put a waiting thread to sleep, though only one thread ever runs here. Atomic types such as `AtomicU64` become real atomic instructions too; without +atomics they compile to plain loads and stores.",
   },
 };
 
@@ -34,7 +36,7 @@ export const groupInfo: Record<Group, { title: string; detail: string }> = {
   loop: {
     title: "Lock inside a loop",
     detail:
-      "The lock is taken on every iteration, in the same function as the loop, so LLVM can optimize across it. The value comes from outside the function, like real shared state, so LLVM can't remove the lock.",
+      "The lock is taken on every iteration, in the same function as the loop, so LLVM can optimize across it. The value comes from outside the function, like real shared state, so LLVM can't remove the lock. Each iteration's input goes through `black_box`, which could read the lock, so here even `RefCell` writes its borrow flag on every iteration.",
   },
   held: {
     title: "Lock held for the whole loop",
@@ -42,7 +44,8 @@ export const groupInfo: Record<Group, { title: string; detail: string }> = {
   },
   app: {
     title: "Shared object with a method call",
-    detail: "`Rc<RefCell<State>>` vs `Arc<Mutex<State>>`, calling a method that updates three fields: closer to real application code.",
+    detail:
+      "`Rc<RefCell<State>>` vs `Arc<Mutex<State>>`, calling a small method, kept as a call, that bumps one of two counters and stores the last value: closer to real application code.",
   },
 };
 
@@ -83,9 +86,9 @@ export const workloads: readonly Workload[] = [
   { id: "op/cell", group: "op", code: "c.set(c.get() + x)", baseline: "op/plain" },
   { id: "op/atomic_relaxed", group: "op", code: "c.fetch_add(x, Relaxed)", baseline: "op/plain" },
   { id: "op/refcell_write", group: "op", code: "*c.borrow_mut() += x", baseline: "op/plain" },
-  { id: "op/refcell_try_write", group: "op", code: "if let Ok(mut g) = c.try_borrow_mut()", baseline: "op/refcell_write" },
+  { id: "op/refcell_try_write", group: "op", code: "if let Ok(mut g) = c.try_borrow_mut() { *g += x }", baseline: "op/refcell_write" },
   { id: "op/mutex", group: "op", code: "*m.lock().unwrap() += x", baseline: "op/plain" },
-  { id: "op/mutex_try", group: "op", code: "if let Ok(mut g) = m.try_lock()", baseline: "op/mutex" },
+  { id: "op/mutex_try", group: "op", code: "if let Ok(mut g) = m.try_lock() { *g += x }", baseline: "op/mutex" },
   { id: "op/rwlock_write", group: "op", code: "*l.write().unwrap() += x", baseline: "op/plain" },
   { id: "op/plain_read", group: "op", code: "*c", baseline: "op/plain_read" },
   { id: "op/refcell_read", group: "op", code: "*c.borrow()", baseline: "op/plain_read" },
@@ -96,8 +99,8 @@ export const workloads: readonly Workload[] = [
   { id: "loop/refcell_write", group: "loop", code: "*p.borrow_mut() += x", baseline: "loop/plain" },
   { id: "loop/mutex", group: "loop", code: "*p.lock().unwrap() += x", baseline: "loop/plain" },
   { id: "loop/rwlock_write", group: "loop", code: "*p.write().unwrap() += x", baseline: "loop/plain" },
-  { id: "held/refcell", group: "held", code: "let mut g = p.borrow_mut(); loop { *g += x }", baseline: "loop/plain" },
-  { id: "held/mutex", group: "held", code: "let mut g = p.lock().unwrap(); loop { *g += x }", baseline: "loop/plain" },
+  { id: "held/refcell", group: "held", code: "let mut g = p.borrow_mut(); for … { *g += x }", baseline: "loop/plain" },
+  { id: "held/mutex", group: "held", code: "let mut g = p.lock().unwrap(); for … { *g += x }", baseline: "loop/plain" },
   { id: "app/rc_refcell", group: "app", code: "s.borrow_mut().record(x)", baseline: "app/rc_refcell" },
   { id: "app/arc_mutex", group: "app", code: "s.lock().unwrap().record(x)", baseline: "app/rc_refcell" },
 ];
@@ -138,11 +141,19 @@ export const lockComparisons = (v: Variant): Comparison[] => [
   pair(`arc-rc-app:${v}`, "Arc<Mutex> ÷ Rc<RefCell>, method", ["app/arc_mutex", v], ["app/rc_refcell", v]),
 ];
 
+/** Figure 3's rows, with the label each shows. */
+const buildRows = [
+  ["op/refcell_write", "RefCell borrow (control)"],
+  ["op/mutex", "Mutex lock, one call"],
+  ["op/rwlock_write", "RwLock write, one call"],
+  ["loop/mutex", "Mutex lock, in a loop"],
+  ["op/atomic_relaxed", "Relaxed atomic add"],
+  ["app/arc_mutex", "Arc<Mutex>, method call"],
+] as const;
+
 /** Figure 3: what a build costs against the default, for the same workload. */
 export const buildComparisons = (v: Exclude<Variant, "abort">): Comparison[] =>
-  (["op/refcell_write", "op/mutex", "op/rwlock_write", "loop/mutex", "op/atomic_relaxed", "app/arc_mutex"] as const).map((w) =>
-    pair(`build-${w}:${v}`, w, [w, v], [w, "abort"]),
-  );
+  buildRows.map(([w, label]) => pair(`build-${w}:${v}`, label, [w, v], [w, "abort"]));
 
 /** A minimal module with a try_table: `WebAssembly.validate` rejects it in engines without exnref. */
 const exnrefProbe = new Uint8Array([

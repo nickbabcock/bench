@@ -59,7 +59,9 @@ export const instructionCount = (text: string) =>
 const Panel = ({ side, text, time }: { side: Side; text: string | undefined; time: string }) => (
   <div className="min-w-0">
     <div className="flex flex-wrap items-baseline justify-between gap-x-3 border-b border-rule pb-1">
-      <h4 className="text-[0.9375rem] font-semibold text-ink">{side.name}</h4>
+      <h4 className="text-[0.9375rem] font-semibold text-ink">
+        <code>{side.name}</code>
+      </h4>
       <span className="text-sm text-ink-2 tabular-nums">
         {text ? `${instructionCount(text)} instructions` : "not in this build"} · {time}
       </span>
@@ -96,7 +98,7 @@ export const LocksListings = ({ n, row, engine }: { n: number; row: ResultRow; e
         subtitle={
           <>
             Each operation is a Rust function marked <code>#[inline(never)]</code>, shown as wasm-bindgen outputs it: exactly what the browser compiles. The
-            time is the median from the results table for the chosen build.
+            time is the median from the results table for the chosen build. Instruction counts include the panic path, which never runs here.
           </>
         }
         source={`The modules this page runs, printed by ${listings.printer.replace(/ \(.*\)$/, "")}. Crate hashes are removed.`}
@@ -119,18 +121,23 @@ export const LocksListings = ({ n, row, engine }: { n: number; row: ResultRow; e
         <h3 className="text-fig font-bold text-ink">What the code shows</h3>
         <ul>
           <li>
-            <b>panic=abort (the default).</b> The <code>RefCell</code> borrow is one load and one branch. LLVM can see that nothing reads the borrow flag
-            while it is set, so it never writes it. The <code>Mutex</code> sets and clears its lock flag, and checks it with an <code>assert_eq!</code>.
-            The panic path of that assert needs a stack frame, so the function also moves the stack pointer down and back up.
+            <b>panic=abort (the default).</b> The <code>RefCell</code> borrow is one load and one branch. In this function, LLVM can see that nothing reads
+            the borrow flag while it is set, so it never writes it. The <code>Mutex</code> sets and clears its lock flag, and checks it with an{" "}
+            <code>assert_eq!</code>. The panic path of that assert needs a stack frame, so the function also moves the stack pointer down and back up on
+            every call. <code>Mutex::try_lock</code> has no assert and so no stack frame, and it takes less time than <code>Mutex::lock</code>: the
+            frame is a large part of the <code>Mutex</code>'s extra cost. <code>RwLock::write</code> compiles to almost the same code as the{" "}
+            <code>RefCell</code> borrow, so it costs about the same.
           </li>
           <li>
             <b>panic=unwind.</b> The <code>RefCell</code> borrow does not change: a <code>RefCell</code> can't be poisoned. The <code>Mutex</code> now also
-            checks its poison flag, and reads the global panic count twice, once to lock and once to unlock.
+            checks its poison flag, and reads the global panic count twice, once to lock and once to unlock. <code>RwLock::write</code> now writes its lock
+            state, checks poison and needs a stack frame too, so it loses that advantage (see Figure 3).
           </li>
           <li>
-            <b>+atomics.</b> The <code>Mutex</code> becomes a real lock built on atomic instructions: a compare-and-swap to lock and a swap to unlock. The
-            code that waits for another thread is there but never runs, because only one thread uses the lock. The <code>RefCell</code> borrow does not
-            change.
+            <b>+atomics.</b> The <code>Mutex</code> becomes a futex lock built on atomic instructions: a compare-and-swap to lock and a swap to unlock. The
+            code that waits for another thread is there but never runs, because only one thread uses the lock. This <code>Mutex</code> has fewer
+            instructions than the default one but is slower: an atomic read-modify-write costs much more than a plain load and store, even with one
+            thread. The same is true of the relaxed atomic add in Figure 3. The <code>RefCell</code> borrow does not change.
           </li>
         </ul>
       </Prose>

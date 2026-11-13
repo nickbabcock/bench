@@ -3,11 +3,18 @@
  * every round, so each question is a paired time ratio with the site's
  * claim rule, gated across independent captures setting by setting.
  */
-import { ask, askReproduced, replicatesOf, type Cell, type Claim, type FigureQuestion, type Finding, reproducedIn, scopeOf, withinBudget } from "@/lib/findings";
+import { ask, askReproduced, replicatesOf, type Cell, type Claim, type FigureQuestion, type Finding, reproducedIn, scopeOf, times, withinBudget } from "@/lib/findings";
 import { geomean, isPairedClaim } from "@/lib/stats";
 import { comparisonEffect, ratioWords } from "./claims";
 import type { ResultRow } from "./harness";
 import { buildComparisons, type Comparison, lockComparisons } from "./workloads";
+
+/** Above this max ÷ min of the browsers' ratios, a claim gives each browser its own number. */
+const SPREAD = 1.1;
+
+/** " and 2× in Firefox"; ", 2× in Firefox and 3× in Safari" for more. */
+const listTail = (items: readonly string[]) =>
+  items.length === 0 ? "" : items.length === 1 ? ` and ${items[0]}` : `, ${items.slice(0, -1).join(", ")} and ${items[items.length - 1]}`;
 
 /** One run, in one engine on one machine. */
 export type LocksCell = Cell & { row: ResultRow };
@@ -44,13 +51,21 @@ function comparisonQuestion(
       const ratio = (cs: readonly LocksCell[]) => geomean(cs.map((c) => comparisonEffect(c.row, comparison)!.median));
       const measured = cells.filter((c) => comparisonEffect(c.row, comparison) !== undefined);
       const scope = scopeOf(held, measured);
-      const words = ratioWords(ratio(held));
+      // Where the browsers that hold the claim differ by more than SPREAD, each gets its own number: an average would be a
+      // number that no browser measured. All in one format, so they compare at a glance ("1.23× as long as … in Chrome
+      // and 1.63× in Firefox"); ratioWords would switch from % to × at 1.5.
+      const each = held.map((c) => comparisonEffect(c.row, comparison)!.median);
+      const split = held.length > 1 && Math.max(...each) / Math.min(...each) > SPREAD;
+      const short = (r: number) => ratioWords(r).replace(/ (as|than)$/, "");
+      const lead = (where: string) =>
+        split
+          ? `${sentence(`${times(each[0])} as long as`)} ${scopeOf([held[0]], measured)}${listTail(held.slice(1).map((c, i) => `${times(each[i + 1])} ${scopeOf([c], measured)}`))}`
+          : `${sentence(ratioWords(ratio(held)))}${where ? ` ${where}` : ""}`;
       // Cells that reproduce the other direction get their own clause, so a reader does not take them as "about the same".
       const other = held === slower ? faster : slower;
-      const otherWords = other.length ? ratioWords(ratio(other)).replace(/ (as|than)$/, "") : "";
-      const but = (where: string) => (other.length ? `, but ${otherWords} ${where}` : "");
-      const title = sentence(words) + (scope ? ` ${scope}` : "") + but(scopeOf(other, measured));
-      const say = (where: string, otherWhere: string) => `${sentence(words)}${where ? ` ${where}` : ""}${but(otherWhere)} (Figure ${figure}).`;
+      const but = (where: string) => (other.length ? `, but ${short(ratio(other))} ${where}` : "");
+      const title = lead(scope) + but(scopeOf(other, measured));
+      const say = (where: string, otherWhere: string) => `${lead(where)}${but(otherWhere)} (Figure ${figure}).`;
       const count = (cs: readonly LocksCell[]) => `in ${cs.length} of ${measured.length} browsers`;
       return {
         title,
@@ -71,7 +86,7 @@ export const lockCost = comparisonQuestion(
   lockComparisons("abort")[0],
   "How long does one Mutex lock take against one RefCell borrow in the default build?",
   "Mutex ÷ RefCell, per build",
-  (w) => `In the default build, a Mutex lock took ${w} a RefCell borrow`,
+  (w) => `In the default build, a \`Mutex\` lock took ${w} a \`RefCell\` borrow`,
 );
 
 /** Figure 3: what panic=unwind does to one Mutex lock. */
@@ -80,7 +95,7 @@ export const unwindCost = comparisonQuestion(
   buildComparisons("unwind").find((c) => c.subject.workload === "op/mutex")!,
   "How long does one Mutex lock take with panic=unwind against the default build?",
   "Each build ÷ the default build, same workload",
-  (w) => `With panic=unwind, a Mutex lock took ${w} with panic=abort`,
+  (w) => `With panic=unwind, a \`Mutex\` lock took ${w} with panic=abort`,
 );
 
 /** Figure 3: what +atomics does to one Mutex lock. */
@@ -89,7 +104,7 @@ export const atomicsCost = comparisonQuestion(
   buildComparisons("atomics").find((c) => c.subject.workload === "op/mutex")!,
   "How long does one Mutex lock take with +atomics against the default build?",
   "Each build ÷ the default build, same workload",
-  (w) => `With +atomics, a Mutex lock took ${w} without it`,
+  (w) => `With +atomics, a \`Mutex\` lock took ${w} without it`,
 );
 
 export const locksQuestions = [lockCost, unwindCost, atomicsCost] as const;

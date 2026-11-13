@@ -15,7 +15,7 @@ export type CitedProps = {
  * A generated sentence for body text or a main point, with every
  * "(Figure n)", "(Table n)" and "(Figure n; table)" in it linked to its
  * anchor. Hyphenated names keep together (`keepTogether`), never `nb`, so
- * copied flags paste as typed.
+ * copied flags paste as typed. Text in backticks renders as code.
  */
 export const Cited = ({ text, tableHref, tableId }: CitedProps) => {
   // A citation may carry "; table" (a linked table) or ", <qualifier>", plain
@@ -28,7 +28,15 @@ export const Cited = ({ text, tableHref, tableId }: CitedProps) => {
         const key = `${i}:${part}`;
         const slot = i % 4;
         if (slot === 0) {
-          return <Fragment key={key}>{keepTogether(part)}</Fragment>;
+          // Code in backticks ("a `Mutex` lock") renders as <code>.
+          const pieces = part.split("`");
+          return (
+            <Fragment key={key}>
+              {pieces.length === 1
+                ? keepTogether(part)
+                : pieces.map((p, j) => <Fragment key={`${j}:${p}`}>{j % 2 ? <code>{p}</code> : keepTogether(p)}</Fragment>)}
+            </Fragment>
+          );
         }
         if (slot !== 1) {
           return null;
