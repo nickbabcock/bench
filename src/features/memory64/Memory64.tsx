@@ -32,13 +32,14 @@ import {
   Section,
   sourceLine,
   THIS_MACHINE,
+  unreproducedNote,
   useDataset,
   useSupport,
 } from "@/components/release";
 import { MIN_SAMPLE_MS } from "@/lib/bench";
 import { build, buildSummary, hardware } from "@/lib/build";
 import { fileDate, toCSV, toMarkdown } from "@/lib/export";
-import { ask, cellKey, machineLabel, listText, pct, relativeSentence, relativeTo } from "@/lib/findings";
+import { ask, cellKey, machineLabel, listText, pct, relativeSentence, relativeTo, replicatesOf } from "@/lib/findings";
 import { formatDuration, formatInteger, formatMiB, plural, quantity } from "@/lib/format";
 import { useActiveRun } from "@/lib/runRegistry";
 import { isPairedClaim, summarize } from "@/lib/stats";
@@ -50,7 +51,6 @@ import {
   figureTitle,
   gatedFindings,
   memory64Questions,
-  replicatesOf,
   memory64Relative,
   type Memory64Cell,
 } from "./findings";
@@ -83,7 +83,7 @@ const Cited = ({ text }: { text: string }) => <CitedText text={text} />;
 const noPoints = (pending: number, replicated: boolean) =>
   pending === 0
     ? "Neither time nor peak memory differed beyond the threshold between wasm64 and wasm32, so there are no main points."
-    : `${plural(pending, "finding")} cleared the threshold in this capture, but ${replicated ? `${pending === 1 ? "did" : "do"} not hold in the second capture` : `no second independent capture exists yet to reproduce ${pending === 1 ? "it" : "them"}`}, so the table reports ${pending === 1 ? "it" : "them"} instead.`;
+    : unreproducedNote(pending, replicated);
 
 /** What to try after an error, by its kind. */
 const recovery = (error: string) =>

@@ -82,6 +82,53 @@ checksum = "sha256:6c19b820577486f00332ad8d04ac506da67b0892316b8d485371a58cbf216
 url = "https://github.com/WebAssembly/wasi-sdk/releases/download/wasi-sdk-29/wasi-sdk-29.0-x86_64-windows.tar.gz"
 url_api = "https://api.github.com/repos/WebAssembly/wasi-sdk/releases/assets/316597228"
 
+[[tools."github:bytecodealliance/wasm-tools"]]
+version = "1.262.0"
+backend = "github:bytecodealliance/wasm-tools"
+specifiers = ["1.262.0"]
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.linux-arm64"]
+checksum = "sha256:729dc47a114305ed60873ce6199d403eed1da89c3aa2367eef292da358b1e8d3"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-aarch64-linux.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395307"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.linux-arm64-musl"]
+checksum = "sha256:729dc47a114305ed60873ce6199d403eed1da89c3aa2367eef292da358b1e8d3"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-aarch64-linux.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395307"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.linux-x64"]
+checksum = "sha256:655b8df67d54c3ef9b52fc237c4e94bbfbb5f5f43825245cb0940a7002a9ed65"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-x86_64-linux.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395349"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.linux-x64-musl"]
+checksum = "sha256:655b8df67d54c3ef9b52fc237c4e94bbfbb5f5f43825245cb0940a7002a9ed65"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-x86_64-linux.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395349"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.macos-arm64"]
+checksum = "sha256:801b237643cc0f4ab27ebd1745e7863e23bf194a038bc6ca8ce5618212e43669"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-aarch64-macos.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395301"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.macos-x64"]
+checksum = "sha256:970b078911cad1a01a645c769de722cd44feee3355dcc4170c2ac3066154e5e9"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-x86_64-macos.tar.gz"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395344"
+provenance = "github-attestations"
+
+[tools."github:bytecodealliance/wasm-tools"."platforms.windows-x64"]
+checksum = "sha256:a39100cadac426e174e449a80db669f191b6a2e14f27c369553580ca6e9ea7e3"
+url = "https://github.com/bytecodealliance/wasm-tools/releases/download/v1.262.0/wasm-tools-1.262.0-x86_64-windows.zip"
+url_api = "https://api.github.com/repos/bytecodealliance/wasm-tools/releases/assets/638395353"
+provenance = "github-attestations"
+
 [[tools."github:rustwasm/wasm-bindgen"]]
 version = "0.2.130"
 backend = "github:rustwasm/wasm-bindgen"

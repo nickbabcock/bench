@@ -15,6 +15,7 @@ import { Route as BuildRouteImport } from './routes/build'
 import { Route as CaptureRouteImport } from './routes/capture'
 import { Route as CompressionRouteImport } from './routes/compression'
 import { Route as DevKitRouteImport } from './routes/dev-kit'
+import { Route as LocksRouteImport } from './routes/locks'
 import { Route as Memory64RouteImport } from './routes/memory64'
 import { Route as MethodRouteImport } from './routes/method'
 
@@ -48,6 +49,11 @@ const DevKitRoute = DevKitRouteImport.update({
   path: '/dev-kit',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LocksRoute = LocksRouteImport.update({
+  id: '/locks',
+  path: '/locks',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Memory64Route = Memory64RouteImport.update({
   id: '/memory64',
   path: '/memory64',
@@ -66,6 +72,7 @@ export interface FileRoutesByFullPath {
   '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
   '/dev-kit': typeof DevKitRoute
+  '/locks': typeof LocksRoute
   '/memory64': typeof Memory64Route
   '/method': typeof MethodRoute
 }
@@ -76,6 +83,7 @@ export interface FileRoutesByTo {
   '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
   '/dev-kit': typeof DevKitRoute
+  '/locks': typeof LocksRoute
   '/memory64': typeof Memory64Route
   '/method': typeof MethodRoute
 }
@@ -87,6 +95,7 @@ export interface FileRoutesById {
   '/capture': typeof CaptureRoute
   '/compression': typeof CompressionRoute
   '/dev-kit': typeof DevKitRoute
+  '/locks': typeof LocksRoute
   '/memory64': typeof Memory64Route
   '/method': typeof MethodRoute
 }
@@ -99,6 +108,7 @@ export interface FileRouteTypes {
     | '/capture'
     | '/compression'
     | '/dev-kit'
+    | '/locks'
     | '/memory64'
     | '/method'
   fileRoutesByTo: FileRoutesByTo
@@ -109,6 +119,7 @@ export interface FileRouteTypes {
     | '/capture'
     | '/compression'
     | '/dev-kit'
+    | '/locks'
     | '/memory64'
     | '/method'
   id:
@@ -119,6 +130,7 @@ export interface FileRouteTypes {
     | '/capture'
     | '/compression'
     | '/dev-kit'
+    | '/locks'
     | '/memory64'
     | '/method'
   fileRoutesById: FileRoutesById
@@ -130,6 +142,7 @@ export interface RootRouteChildren {
   CaptureRoute: typeof CaptureRoute
   CompressionRoute: typeof CompressionRoute
   DevKitRoute: typeof DevKitRoute
+  LocksRoute: typeof LocksRoute
   Memory64Route: typeof Memory64Route
   MethodRoute: typeof MethodRoute
 }
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof DevKitRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/locks': {
+      id: '/locks'
+      path: '/locks'
+      fullPath: '/locks'
+      preLoaderRoute: typeof LocksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/memory64': {
       id: '/memory64'
       path: '/memory64'
@@ -202,6 +222,7 @@ const rootRouteChildren: RootRouteChildren = {
   CaptureRoute: CaptureRoute,
   CompressionRoute: CompressionRoute,
   DevKitRoute: DevKitRoute,
+  LocksRoute: LocksRoute,
   Memory64Route: Memory64Route,
   MethodRoute: MethodRoute,
 }

@@ -15,6 +15,8 @@ import { setSampleCount as setMemory64Samples, startRun as startMemory64, useMem
 import * as m64 from "@/features/memory64/harness";
 import { supportsMemory64 } from "@/features/memory64/workloads";
 import { planFor, startRun as startBuild, useBuildSession } from "@/features/build/session";
+import { MAX_ROUNDS as LOCKS_MAX_ROUNDS, MIN_ROUNDS as LOCKS_MIN_ROUNDS, setSampleCount as setLocksSamples, startRun as startLocks, useLocksSession } from "@/features/locks/session";
+import { ITERATIONS as LOCKS_ITERATIONS, variants as lockVariants, workloadIds as lockWorkloads } from "@/features/locks/workloads";
 import { BUILD_CORPORA } from "@/features/build/input";
 import { AA, BASELINE as BUILD_BASELINE, BROTLI_QUALITY, DEFLATE_LEVEL, type SubjectKey, subjectKeys, subjects, variantIds, ZSTD_LEVEL } from "@/features/build/subjects";
 
@@ -26,7 +28,7 @@ import { AA, BASELINE as BUILD_BASELINE, BROTLI_QUALITY, DEFLATE_LEVEL, type Sub
  *   /capture?bench=compression&input=dickens&samples=10
  *   /capture?bench=build&samples=15
  *   /capture?bench=build&samples=15&subjects=zstd-decode,alloc   (a subset, merged by the script)
- *   /capture?bench=allocation   /capture?bench=memory64
+ *   /capture?bench=allocation   /capture?bench=memory64   /capture?bench=locks
  *
  * Host facts (CPU model, power, OS) and the edition id are filled in by the
  * script; here they are best-effort placeholders.
@@ -47,7 +49,7 @@ declare global {
   }
 }
 
-const DEFAULT_SAMPLES: Record<BenchId, number> = { compression: 10, allocation: 20, memory64: 20, build: 15 };
+const DEFAULT_SAMPLES: Record<BenchId, number> = { compression: 10, allocation: 20, memory64: 20, build: 15, locks: 20 };
 
 const rotateMethod = (samples: number, paired: boolean): Method => ({
   samples,
@@ -152,6 +154,31 @@ async function runBench(bench: BenchId, input: CorpusId | null, samples: number,
         raw: [...s.results].reverse(),
       };
     }
+    case "locks": {
+      if (!Number.isInteger(samples) || samples < LOCKS_MIN_ROUNDS || samples > LOCKS_MAX_ROUNDS) {
+        throw new Error(`locks needs ${LOCKS_MIN_ROUNDS}–${LOCKS_MAX_ROUNDS} samples, not ${samples}`);
+      }
+      setLocksSamples(samples);
+      await startLocks();
+      const s = useLocksSession.getState();
+      if (s.error || s.cancelled || !s.results[0]) {
+        throw new Error(s.error ?? "locks run did not finish");
+      }
+      const run = s.results[0];
+      // A reference capture measures every build. A missing one is almost
+      // always a setup fault (no cross-origin isolation, an old browser).
+      const missing = lockVariants.filter((v) => !run.variants.includes(v));
+      if (missing.length) {
+        throw new Error(`locks did not measure ${missing.map((v) => `${v} (${run.skipped[v] ?? "no reason given"})`).join(", ")}`);
+      }
+      return {
+        input: null,
+        corpus: [],
+        method: rotateMethod(samples, true),
+        params: { iterations: LOCKS_ITERATIONS, wasmOpt: "none", builds: lockVariants, measured: run.variants, skipped: run.skipped, flags: run.flags, workloads: lockWorkloads, calls: run.calls },
+        raw: run,
+      };
+    }
   }
 }
 
@@ -160,13 +187,15 @@ const artifactsFor = (bench: BenchId) =>
   build.artifacts.filter(({ name }) => {
     switch (bench) {
       case "compression":
-        return !name.startsWith("alloc") && !name.startsWith("memory64") && !name.startsWith("variants/");
+        return !name.startsWith("alloc") && !name.startsWith("memory64") && !name.startsWith("locks_") && !name.startsWith("variants/");
       case "allocation":
         return name.startsWith("alloc");
       case "memory64":
         return name.startsWith("memory64");
       case "build":
         return name.startsWith("variants/") || name === "zstd_write_bg.wasm" || name === "corpus_bg.wasm";
+      case "locks":
+        return name.startsWith("locks_");
     }
   });
 
@@ -286,7 +315,7 @@ function Capture() {
         {state.status === "running" && state.detail ? `: ${state.detail}` : ""}
         {state.status === "error" ? `: ${state.error}` : ""}
       </p>
-      {state.status === "idle" && <p>Usage: /capture?bench=compression|allocation|memory64|build[&amp;input=dickens][&amp;samples=N][&amp;subjects=a,b]</p>}
+      {state.status === "idle" && <p>Usage: /capture?bench=compression|allocation|memory64|build|locks[&amp;input=dickens][&amp;samples=N][&amp;subjects=a,b]</p>}
     </main>
   );
 }

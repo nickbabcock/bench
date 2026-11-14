@@ -5,6 +5,7 @@ import { corpora } from "@/features/compression/corpora";
 import { STREAM_ALLOWANCE } from "@/features/compression/findings";
 import { formatInteger } from "@/lib/format";
 import { MIN_WARMUP_MS as MEMORY64_WARMUP_MS } from "@/features/memory64/harness";
+import { ITERATIONS as LOCK_ITERATIONS } from "@/features/locks/workloads";
 import { AllocationWorkload } from "./AllocationWorkload";
 import { MAX_DRIFT, MAX_DRIFT_OUTLIERS } from "@/lib/edition";
 import { MIN_PAIRED_ROUNDS, PRACTICAL_FLOOR, medianCI } from "@/lib/stats";
@@ -50,7 +51,7 @@ export const Method = () => (
     <ReleaseHeader
       title="Quality and methodology"
       meta={[
-        { label: "Applies to", value: "Compression, Allocation, Memory64, Build settings" },
+        { label: "Applies to", value: "Compression, Allocation, Memory64, Build settings, RefCell vs Mutex" },
         { label: "Sample", value: `A batch of at least ${MIN_SAMPLE_MS} ms` },
         { label: "Reporting threshold", value: `±${pct}` },
       ]}
@@ -109,13 +110,16 @@ export const Method = () => (
 
       <Section id="unpaired">
         <Prose>
-          <p>Three pages pair their comparisons by round:</p>
+          <p>Four pages pair their comparisons by round:</p>
           <ul>
             <li>
               <b className="font-semibold">Build settings</b>: every variant, and the A/A instance, against the shipped build.
             </li>
             <li>
               <b className="font-semibold">Memory64</b>: wasm64 against wasm32.
+            </li>
+            <li>
+              <b className="font-semibold">RefCell vs Mutex</b>: every workload in every build, so any two compare.
             </li>
             <li>
               <b className="font-semibold">Allocation</b>: within a class only, talc against dlmalloc and bump-scope against bumpalo.
@@ -236,6 +240,19 @@ export const Method = () => (
             </li>
             <li>All variants and the A/A control run in every round, so any two compare as a paired ratio.</li>
             <li>Sizes are exact: raw, gzip and brotli bytes of each module, and its count of SIMD instructions.</li>
+          </ul>
+          <H3>
+            <Link to="/locks" className="link">
+              RefCell vs Mutex
+            </Link>
+          </H3>
+          <ul>
+            <li>
+              One crate built three times with the same nightly compiler, std built from source: <Flag>panic=abort</Flag>,{" "}
+              <Flag>panic=unwind</Flag> and <Flag>+atomics</Flag>. No <Flag>wasm-opt</Flag>.
+            </li>
+            <li>Each sample is a batch of {formatInteger(LOCK_ITERATIONS)}-iteration calls; the page reports ns per operation.</li>
+            <li>Every workload in every build runs in every round. Before timing, each build must compute the same digest for each workload, or the run stops.</li>
           </ul>
         </Prose>
       </Section>

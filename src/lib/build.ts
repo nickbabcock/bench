@@ -8,11 +8,13 @@ declare const __BUILD_INFO__: BuildInfo;
 // oxlint-disable-next-line no-underscore-dangle
 export const build: BuildInfo = __BUILD_INFO__;
 
-/** One-line summary of the toolchain and flags. */
+/** The compiler and profile: "rustc 1.99.1, opt-level 3, LTO fat". */
+export const toolchainSummary = (nightly = false) =>
+  `${nightly ? `rustc ${build.rustcNightly}, std built from source` : build.rustc.replace(/ \(.*\)$/, "")}, opt-level ${build.optLevel}, LTO ${build.lto}`;
+
+/** One-line summary of the toolchain and flags of the site's modules. */
 export const buildSummary = (nightly = false) =>
-  `${nightly ? `rustc ${build.rustcNightly}, std built from source` : build.rustc.replace(/ \(.*\)$/, "")}, opt-level ${build.optLevel}, LTO ${build.lto}, ${
-    build.targetFeatures.join(", ").startsWith("none") ? "no SIMD" : build.targetFeatures.join(" ")
-  }, wasm-opt ${build.wasmOpt}`;
+  `${toolchainSummary(nightly)}, ${build.targetFeatures.join(", ").startsWith("none") ? "no SIMD" : build.targetFeatures.join(" ")}, wasm-opt ${build.wasmOpt}`;
 
 /** Machine facts for exports: logical cores and platform. */
 export const hardware = () => ({

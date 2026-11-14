@@ -1,7 +1,8 @@
 /**
  * Reference captures: shared helpers (selection, facets, the drift gate).
  * The data itself lives behind one module per benchmark
- * (./compression.ts, ./allocation.ts, ./memory64.ts, ./build.ts), each
+ * (./compression.ts, ./allocation.ts, ./memory64.ts, ./build.ts,
+ * ./locks.ts), each
  * with its own eager glob, so a page bundles only its own benchmark's
  * captures. This module imports no data. Paths and shapes:
  * src/lib/edition.ts.
@@ -11,11 +12,13 @@ import type { CompressionRun } from "@/features/compression/types";
 import type { AllocationRun } from "@/features/allocation/harness";
 import type { ResultRow as Memory64Row } from "@/features/memory64/harness";
 import type { ResultRow as BuildRow } from "@/features/build/harness";
+import type { ResultRow as LocksRow } from "@/features/locks/harness";
 
 export type CompressionEdition = Edition<CompressionRun>;
 export type AllocationEdition = Edition<AllocationRun>;
 export type Memory64Edition = Edition<Memory64Row>;
 export type BuildEdition = Edition<BuildRow[]>;
+export type LocksEdition = Edition<LocksRow>;
 
 /** Each benchmark's captures, once loaded, so `withheld(bench)` can find them. */
 const loaded = new Map<BenchId, readonly Edition[]>();

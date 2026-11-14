@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { createElement, Fragment } from "react";
 import { figureId } from "./Figure";
 import { keepTogether } from "./nb";
 
@@ -15,7 +15,7 @@ export type CitedProps = {
  * A generated sentence for body text or a main point, with every
  * "(Figure n)", "(Table n)" and "(Figure n; table)" in it linked to its
  * anchor. Hyphenated names keep together (`keepTogether`), never `nb`, so
- * copied flags paste as typed.
+ * copied flags paste as typed. Text in backticks renders as code.
  */
 export const Cited = ({ text, tableHref, tableId }: CitedProps) => {
   // A citation may carry "; table" (a linked table) or ", <qualifier>", plain
@@ -28,7 +28,16 @@ export const Cited = ({ text, tableHref, tableId }: CitedProps) => {
         const key = `${i}:${part}`;
         const slot = i % 4;
         if (slot === 0) {
-          return <Fragment key={key}>{keepTogether(part)}</Fragment>;
+          // Code in backticks ("a `Mutex` lock") renders as <code>.
+          const pieces = part.split("`");
+          return (
+            <Fragment key={key}>
+              {pieces.length === 1
+                ? keepTogether(part)
+                : // Separate children, not a list, so the pieces need no keys.
+                  createElement(Fragment, null, ...pieces.map((p, j) => (j % 2 ? createElement("code", null, p) : createElement(Fragment, null, keepTogether(p)))))}
+            </Fragment>
+          );
         }
         if (slot !== 1) {
           return null;

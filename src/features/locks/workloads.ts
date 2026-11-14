@@ -1,0 +1,178 @@
+/**
+ * RefCell against Mutex: the builds and the workloads, in page order. The
+ * ids match `WORKLOADS` in packages/lockbench/src/lib.rs, which the worker
+ * checks when it loads each build.
+ */
+
+/** One crate built three times; see `mise run build:locks`. */
+export type Variant = "abort" | "unwind" | "atomics";
+export const variants: readonly Variant[] = ["abort", "unwind", "atomics"];
+
+export const variantInfo: Record<Variant, { label: string; detail: string }> = {
+  abort: {
+    label: "panic=abort",
+    detail: "The default for `wasm32-unknown-unknown` and WASI. A panic can never be caught, so `Mutex` has no poison flag: it is a single `Cell<bool>`.",
+  },
+  unwind: {
+    label: "panic=unwind",
+    detail:
+      "std rebuilt so that panics unwind. Poisoning comes back: every `Mutex` lock and `RwLock` write checks the poison flag and the global panic count, and an `RwLock` read checks the poison flag.",
+  },
+  atomics: {
+    label: "+atomics",
+    detail:
+      "std rebuilt with thread support (atomics and shared memory). `Mutex` and `RwLock` become futex locks, which can put a waiting thread to sleep, though only one thread ever runs here. Atomic types such as `AtomicU64` become real atomic instructions too; without +atomics they compile to plain loads and stores.",
+  },
+};
+
+export type Group = "op" | "loop" | "held" | "app";
+
+export const groupInfo: Record<Group, { title: string; detail: string }> = {
+  op: {
+    title: "One call per operation",
+    detail:
+      "Each iteration calls a small function marked `#[inline(never)]`, so LLVM keeps it as a call (the browser can still inline it). Writes are compared with `op/plain`, reads with `op/plain_read`, and each `try_` row with the same lock taken the normal way.",
+  },
+  loop: {
+    title: "Lock inside a loop",
+    detail:
+      "The lock is taken on every iteration, in the same function as the loop, so LLVM can optimize across it. The value comes from outside the function, like real shared state, so LLVM can't remove the lock. Each iteration's input goes through `black_box`, which could read the lock, so here even `RefCell` writes its borrow flag on every iteration.",
+  },
+  held: {
+    title: "Lock held for the whole loop",
+    detail: "The same loop, but the lock is taken once before the loop instead of on every iteration.",
+  },
+  app: {
+    title: "Shared object with a method call",
+    detail:
+      "`Rc<RefCell<State>>` vs `Arc<Mutex<State>>`, calling a small method, kept as a call, that bumps one of two counters and stores the last value: closer to real application code.",
+  },
+};
+
+export type WorkloadId =
+  | "op/plain"
+  | "op/cell"
+  | "op/atomic_relaxed"
+  | "op/refcell_write"
+  | "op/plain_read"
+  | "op/refcell_read"
+  | "op/refcell_try_write"
+  | "op/mutex"
+  | "op/mutex_try"
+  | "op/rwlock_write"
+  | "op/rwlock_read"
+  | "loop/plain"
+  | "loop/cell"
+  | "loop/atomic_relaxed"
+  | "loop/refcell_write"
+  | "loop/mutex"
+  | "loop/rwlock_write"
+  | "held/refcell"
+  | "held/mutex"
+  | "app/rc_refcell"
+  | "app/arc_mutex";
+
+export type Workload = {
+  id: WorkloadId;
+  group: Group;
+  /** What one operation is, in code. */
+  code: string;
+  /** The row this one is read against ("vs" in the table); itself for a baseline. */
+  baseline: WorkloadId;
+};
+
+export const workloads: readonly Workload[] = [
+  { id: "op/plain", group: "op", code: "*c += x", baseline: "op/plain" },
+  { id: "op/cell", group: "op", code: "c.set(c.get() + x)", baseline: "op/plain" },
+  { id: "op/atomic_relaxed", group: "op", code: "c.fetch_add(x, Relaxed)", baseline: "op/plain" },
+  { id: "op/refcell_write", group: "op", code: "*c.borrow_mut() += x", baseline: "op/plain" },
+  { id: "op/refcell_try_write", group: "op", code: "if let Ok(mut g) = c.try_borrow_mut() { *g += x }", baseline: "op/refcell_write" },
+  { id: "op/mutex", group: "op", code: "*m.lock().unwrap() += x", baseline: "op/plain" },
+  { id: "op/mutex_try", group: "op", code: "if let Ok(mut g) = m.try_lock() { *g += x }", baseline: "op/mutex" },
+  { id: "op/rwlock_write", group: "op", code: "*l.write().unwrap() += x", baseline: "op/plain" },
+  { id: "op/plain_read", group: "op", code: "*c", baseline: "op/plain_read" },
+  { id: "op/refcell_read", group: "op", code: "*c.borrow()", baseline: "op/plain_read" },
+  { id: "op/rwlock_read", group: "op", code: "*l.read().unwrap()", baseline: "op/plain_read" },
+  { id: "loop/plain", group: "loop", code: "v += x; *p = v", baseline: "loop/plain" },
+  { id: "loop/cell", group: "loop", code: "p.set(p.get() + x)", baseline: "loop/plain" },
+  { id: "loop/atomic_relaxed", group: "loop", code: "p.fetch_add(x, Relaxed)", baseline: "loop/plain" },
+  { id: "loop/refcell_write", group: "loop", code: "*p.borrow_mut() += x", baseline: "loop/plain" },
+  { id: "loop/mutex", group: "loop", code: "*p.lock().unwrap() += x", baseline: "loop/plain" },
+  { id: "loop/rwlock_write", group: "loop", code: "*p.write().unwrap() += x", baseline: "loop/plain" },
+  { id: "held/refcell", group: "held", code: "let mut g = p.borrow_mut(); for … { *g += x }", baseline: "loop/plain" },
+  { id: "held/mutex", group: "held", code: "let mut g = p.lock().unwrap(); for … { *g += x }", baseline: "loop/plain" },
+  { id: "app/rc_refcell", group: "app", code: "s.borrow_mut().record(x)", baseline: "app/rc_refcell" },
+  { id: "app/arc_mutex", group: "app", code: "s.lock().unwrap().record(x)", baseline: "app/rc_refcell" },
+];
+
+export const workloadIds: readonly WorkloadId[] = workloads.map((w) => w.id);
+export const workloadById = Object.fromEntries(workloads.map((w) => [w.id, w])) as Record<WorkloadId, Workload>;
+
+/** Inner iterations per driver call: ns per operation is a batch's time ÷ (calls × this). */
+export const ITERATIONS = 4096;
+
+/**
+ * One measured cell, `subject ÷ reference`, paired by round: both cells run
+ * in every round, so each round gives one ratio.
+ */
+export type Comparison = {
+  id: string;
+  subject: { workload: WorkloadId; variant: Variant };
+  reference: { workload: WorkloadId; variant: Variant };
+  /** Row label: "Mutex ÷ RefCell, one call". */
+  label: string;
+};
+
+const pair = (id: string, label: string, subject: [WorkloadId, Variant], reference: [WorkloadId, Variant]): Comparison => ({
+  id,
+  label,
+  subject: { workload: subject[0], variant: subject[1] },
+  reference: { workload: reference[0], variant: reference[1] },
+});
+
+/**
+ * Figure 2: a Mutex against a RefCell doing the same work, in each build.
+ * Only Mutex ÷ RefCell rows: a comparison of two uses of one lock goes in
+ * the table's baseline column instead.
+ */
+export const lockComparisons = (v: Variant): Comparison[] => [
+  pair(`mutex-refcell-op:${v}`, "Mutex ÷ RefCell, one call", ["op/mutex", v], ["op/refcell_write", v]),
+  pair(`mutex-refcell-loop:${v}`, "Mutex ÷ RefCell, in a loop", ["loop/mutex", v], ["loop/refcell_write", v]),
+  pair(`arc-rc-app:${v}`, "Arc<Mutex> ÷ Rc<RefCell>, method", ["app/arc_mutex", v], ["app/rc_refcell", v]),
+];
+
+/** Figure 3's rows, with the label each shows. */
+const buildRows = [
+  ["op/refcell_write", "RefCell borrow (control)"],
+  ["op/mutex", "Mutex lock, one call"],
+  ["op/rwlock_write", "RwLock write, one call"],
+  ["loop/mutex", "Mutex lock, in a loop"],
+  ["op/atomic_relaxed", "Relaxed atomic add"],
+  ["app/arc_mutex", "Arc<Mutex>, method call"],
+] as const;
+
+/** Figure 3: what a build costs against the default, for the same workload. */
+export const buildComparisons = (v: Exclude<Variant, "abort">): Comparison[] =>
+  buildRows.map(([w, label]) => pair(`build-${w}:${v}`, label, [w, v], [w, "abort"]));
+
+/** A minimal module with a try_table: `WebAssembly.validate` rejects it in engines without exnref. */
+const exnrefProbe = new Uint8Array([
+  0x00, 0x61, 0x73, 0x6d, 0x01, 0x00, 0x00, 0x00, 0x01, 0x04, 0x01, 0x60, 0x00, 0x00, 0x03, 0x02, 0x01, 0x00, 0x0a, 0x08, 0x01, 0x06, 0x00, 0x1f,
+  0x40, 0x00, 0x0b, 0x0b,
+]);
+
+/** Why a build can not load in this browser, or undefined when it can. */
+export function unsupported(variant: Variant): string | undefined {
+  switch (variant) {
+    case "abort":
+      return undefined;
+    case "unwind":
+      try {
+        return WebAssembly.validate(exnrefProbe) ? undefined : "needs WebAssembly exception handling with exnref (Chrome 137, Firefox 131, Safari 18.4 or later)";
+      } catch {
+        return "needs WebAssembly exception handling with exnref";
+      }
+    case "atomics":
+      return globalThis.crossOriginIsolated === true && typeof SharedArrayBuffer === "function" ? undefined : "needs shared memory, which only a cross-origin isolated page has";
+  }
+}

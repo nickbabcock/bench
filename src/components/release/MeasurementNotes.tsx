@@ -81,6 +81,12 @@ export type MeasurementNotesProps = {
    * Omit to list every crate the build pinned.
    */
   libraries?: readonly string[];
+  /**
+   * The Build row's text, for a page whose modules use another toolchain
+   * than the site's (a nightly with std from source, no wasm-opt). Default:
+   * the edition's site toolchain and release profile.
+   */
+  build?: React.ReactNode;
 };
 
 const Mono = ({ children }: { children: React.ReactNode }) => <code className="break-all">{children}</code>;
@@ -104,7 +110,7 @@ const MethodLink = () => (
  * threshold, timer) belongs here or on Method. Don't repeat the release
  * header's notice (the engine or machine note) here.
  */
-export const MeasurementNotes = ({ edition: e, items = [], rawHref, rawBytes, libraries, provenance, per = "row", id = "notes" }: MeasurementNotesProps) => {
+export const MeasurementNotes = ({ edition: e, items = [], rawHref, rawBytes, libraries, provenance, per = "row", id = "notes", build }: MeasurementNotesProps) => {
   const rows: NoteItem[] = [];
   if (e) {
     const power =
@@ -148,7 +154,7 @@ export const MeasurementNotes = ({ edition: e, items = [], rawHref, rawBytes, li
     const t = e.toolchain;
     rows.push({
       term: "Build",
-      detail: (
+      detail: build ?? (
         <>
           {t.rustc}; {t.wasiSdk}; {t.binaryen}; wasm-bindgen {t.wasmBindgen}. Release profile: opt-level {t.profile.optLevel}, LTO{" "}
           {t.profile.lto}, codegen-units {t.profile.codegenUnits}
@@ -265,9 +271,12 @@ export const MeasurementNotes = ({ edition: e, items = [], rawHref, rawBytes, li
       <p className="prose-links mt-1 text-cap text-ink-2">
         {line.map((x, i) => (
           <Fragment key={i}>
-            {/* The space lets the line wrap between items on a phone. */}
-            {i > 0 ? <span className="px-1.5 text-ink-3">·</span> : null}{" "}
-            <span className="whitespace-nowrap">{x}</span>
+            {/* The space lets the line wrap between items on a phone. The dot starts its item, so a full line does not end in a dot past the edge. */}
+            {i > 0 ? " " : null}
+            <span className="whitespace-nowrap">
+              {i > 0 ? <span className="pr-1.5 text-ink-3">·</span> : null}
+              {x}
+            </span>
           </Fragment>
         ))}
       </p>

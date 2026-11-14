@@ -34,7 +34,7 @@ export type { MeasureSectionProps, RunOutcome, Choice } from "./MeasureSection";
 export { MeasurementNotes, editionProvenance, sourceLine, editionDate, runDate } from "./MeasurementNotes";
 export type { MeasurementNotesProps, NoteItem } from "./MeasurementNotes";
 export { RawDataLink } from "./RawDataLink";
-export { captureNote, conditionsNote, monthOf, ms, OtherRunning, overallOnly, THIS_MACHINE, useDataset, useSupport } from "./page";
+export { captureNote, conditionsNote, monthOf, ms, OtherRunning, overallOnly, THIS_MACHINE, unreproducedNote, useDataset, useSupport } from "./page";
 export { keepTogether, nbNode } from "./nb";
 export type { RawDataLinkProps } from "./RawDataLink";
 export { HighlightScope, useHighlight, type Highlight } from "@/components/highlight";

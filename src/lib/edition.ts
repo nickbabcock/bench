@@ -32,8 +32,8 @@
 
 export const EDITION_SCHEMA = 1;
 
-export type BenchId = "compression" | "allocation" | "memory64" | "build";
-export const benchIds: readonly BenchId[] = ["compression", "allocation", "memory64", "build"];
+export type BenchId = "compression" | "allocation" | "memory64" | "build" | "locks";
+export const benchIds: readonly BenchId[] = ["compression", "allocation", "memory64", "build", "locks"];
 
 /** Browsers the capture script drives. */
 export type BrowserId = "chrome" | "firefox" | "safari";
@@ -380,6 +380,38 @@ function validateRaw(bench: BenchId, raw: unknown, n: number): string[] {
         if (row.checksumsMatch !== true) {
           errors.push(`raw[${i}] checksums differ between variants`);
         }
+      }
+      break;
+    }
+    case "locks": {
+      const run = raw as Obj;
+      if (!isObj(run) || !Array.isArray(run.variants) || !run.variants.includes("abort") || !isObj(run.samples)) {
+        return ["raw must be a locks run that measured the abort build"];
+      }
+      const builds = ["abort", "unwind", "atomics"];
+      if (!run.variants.every((v) => builds.includes(v as string))) {
+        errors.push(`raw.variants must be among ${builds.join(", ")}`);
+      }
+      if (!isObj(run.skipped) || !isObj(run.flags) || !isObj(run.calls) || !Number.isInteger(run.iterations)) {
+        errors.push("raw must record skipped, flags, calls and iterations");
+      }
+      // Every build has the default build's workloads, so the page can read any cell.
+      const expected = Object.keys(((run.samples as Obj).abort as Obj | undefined) ?? {}).sort().join();
+      for (const v of run.variants as string[]) {
+        const byWorkload = (run.samples as Obj)[v];
+        if (!isObj(byWorkload) || Object.keys(byWorkload).length === 0) {
+          errors.push(`raw.samples[${v}] missing`);
+          continue;
+        }
+        if (Object.keys(byWorkload).sort().join() !== expected) {
+          errors.push(`raw.samples[${v}] has other workloads than raw.samples[abort]`);
+        }
+        for (const [w, xs] of Object.entries(byWorkload)) {
+          series(`raw.samples[${v}][${w}]`, xs);
+        }
+      }
+      if (run.checksumsMatch !== true) {
+        errors.push("raw checksums differ between builds");
       }
       break;
     }

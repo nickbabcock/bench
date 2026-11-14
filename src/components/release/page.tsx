@@ -9,8 +9,8 @@ import { hardware } from "@/lib/build";
 import type { RunContext } from "@/lib/context";
 import type { Edition } from "@/lib/edition";
 import type { MachineRef } from "@/lib/findings";
-import { formatDuration, quantity } from "@/lib/format";
-import { type Benchmark, benchmarkNames } from "@/lib/runRegistry";
+import { formatDuration, plural, quantity } from "@/lib/format";
+import { type Benchmark, benchmarkNames, benchmarkRoutes } from "@/lib/runRegistry";
 import { editionDate, type NoteItem, runDate } from "./MeasurementNotes";
 import { RawDataLink } from "./RawDataLink";
 import type { Dataset } from "./ReleaseHeader";
@@ -52,18 +52,25 @@ const noopSubscribe = () => () => {};
 /** `undefined` while prerendering, then `probe()`: a browser feature that doesn't change. */
 export const useSupport = (probe: () => boolean) => useSyncExternalStore<boolean | undefined>(noopSubscribe, probe, () => undefined);
 
-const routes = { compression: "/compression", allocation: "/allocation", memory64: "/memory64", build: "/build" } as const;
 
 /** Why Run is off while another benchmark runs: "Allocation is running. Go to it to finish or cancel it first." */
 export const OtherRunning = ({ benchmark }: { benchmark: Benchmark }) => (
   <>
     {benchmarkNames[benchmark]} is running.{" "}
-    <Link className="link" to={routes[benchmark]}>
+    <Link className="link" to={benchmarkRoutes[benchmark]}>
       Go to it
     </Link>{" "}
     to finish or cancel it first.
   </>
 );
+
+/**
+ * Why a page has no main points although `pending` claims cleared the
+ * threshold: no second independent capture yet, or (`replicated`) it did
+ * not hold in the second capture. The table reports them instead.
+ */
+export const unreproducedNote = (pending: number, replicated: boolean) =>
+  `${plural(pending, "finding")} cleared the threshold in this capture, but ${replicated ? `${pending === 1 ? "did" : "do"} not hold in the second capture` : `no second independent capture exists yet to reproduce ${pending === 1 ? "it" : "them"}`}, so the table reports ${pending === 1 ? "it" : "them"} instead.`;
 
 /** The Conditions note for a run on this machine: browser, platform and timer, then when and how it was measured (`method`). */
 export const conditionsNote = (run: { context?: RunContext; startedAt: number }, method: string): NoteItem => {

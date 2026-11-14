@@ -9,6 +9,9 @@
 ]
 "github:rustwasm/wasm-bindgen" = { version = "0.2.130" }
 "github:WebAssembly/binaryen" = { version = "version_133", strip_components = 1, bin_path = "bin" }
+# Prints the lock kernels as WebAssembly text for the RefCell against Mutex
+# page (`build:locks`). It must read the exnref of the panic=unwind build.
+"github:bytecodealliance/wasm-tools" = { version = "1.262.0" }
 # Compiles the zstd and libdeflate C code to wasm. Apple clang and MSVC cannot
 # compile to wasm32-unknown-unknown.
 "github:WebAssembly/wasi-sdk" = { version = "wasi-sdk-29", strip_components = 1, bin_path = "bin", os = ["macos", "windows"] }
@@ -18,7 +21,7 @@ rust_nightly = "nightly-2026-11-01"
 
 [tasks."build:wasm"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --release --workspace --exclude memory64",
+    "cargo build --target wasm32-unknown-unknown --release --workspace --exclude memory64 --exclude lockbench",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bumpalo.wasm",
     "wasm-bindgen --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/release/alloc_bump_scope.wasm",
@@ -47,12 +50,16 @@ run = [
     "wasm-opt -Os ./src/wasm/zune_bg.wasm -o ./src/wasm/zune_bg.wasm",
     "node packages/alloc-workload/sizes.mjs",
     "mise run build:memory64",
+    "mise run build:locks",
 ]
 
 # Both wasm32 and wasm64 builds use the same nightly compiler and flags
 # (including a from-source std) so pointer width is the only variable. A
 # separate target dir keeps nightly artifacts from thrashing the stable ones.
 [tasks."build:memory64"]
+# An empty RUSTFLAGS: build:locks:abort shares this target dir and std, so
+# flags from the environment must not reach one of the two only.
+env = { RUSTFLAGS = "" }
 run = [
     "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p memory64 --target wasm32-unknown-unknown --target wasm64-unknown-unknown --target-dir ./target/nightly",
     "wasm-bindgen --target web --out-dir ./src/wasm --out-name memory64_wasm32 ./target/nightly/wasm32-unknown-unknown/release/memory64.wasm",
@@ -61,6 +68,44 @@ run = [
     "wasm-opt -Os ./src/wasm/memory64_wasm64_bg.wasm -o ./src/wasm/memory64_wasm64_bg.wasm",
 ]
 
+# RefCell against Mutex: one crate built three times on the pinned nightly,
+# each with std built from source so the panic strategy and the atomics
+# feature are the only differences. No wasm-opt: Binaryen inlines and folds
+# by itself, which would hide what LLVM emitted for each lock. The abort build
+# has the same std as memory64, so it uses memory64's target dir and std
+# compiles once for both. The other two have their own target dirs, so their
+# RUSTFLAGS do not cause a rebuild of another build.
+[tasks."build:locks"]
+depends = ["build:locks:abort", "build:locks:unwind", "build:locks:atomics"]
+run = [
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_abort ./target/nightly/wasm32-unknown-unknown/release/lockbench.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_unwind ./target/locks-unwind/wasm32-unknown-unknown/release/lockbench.wasm",
+    "wasm-bindgen --target web --out-dir ./src/wasm --out-name locks_atomics ./target/locks-atomics/wasm32-unknown-unknown/release/lockbench.wasm",
+    "node packages/lockbench/listings.mjs",
+]
+
+# An empty RUSTFLAGS, as the other two builds set theirs in full: flags from
+# the environment must not reach one build only.
+[tasks."build:locks:abort"]
+hide = true
+env = { RUSTFLAGS = "" }
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/nightly"
+
+# The shipped std for wasm is built for abort, so unwinding needs std rebuilt.
+# LLVM emits the standard exception handling instructions (exnref).
+[tasks."build:locks:unwind"]
+hide = true
+env = { RUSTFLAGS = "-C panic=unwind" }
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_unwind --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-unwind"
+
+# +atomics makes std pick the futex Mutex and RwLock. The memory is shared
+# and imported, as wasm-bindgen's thread support expects; the page never
+# starts a second thread.
+[tasks."build:locks:atomics"]
+hide = true
+env = { RUSTFLAGS = "-C target-feature=+atomics,+bulk-memory,+mutable-globals -C link-arg=--shared-memory -C link-arg=--max-memory=67108864 -C link-arg=--import-memory -C link-arg=--export=__wasm_init_tls -C link-arg=--export=__tls_size -C link-arg=--export=__tls_align -C link-arg=--export=__tls_base" }
+run = "cargo +{{vars.rust_nightly}} build -Zbuild-std=std,panic_abort --release -p lockbench --target wasm32-unknown-unknown --target-dir ./target/locks-atomics"
+
 # The build-settings page: a few crates rebuilt with SIMD off/on and wasm-opt
 # none/-Os/-O3, into src/wasm/variants/ with a manifest per variant.
 [tasks."build:variants"]
@@ -68,7 +113,7 @@ run = "node scripts/build-variants.ts"
 
 [tasks."build:profiling"]
 run = [
-    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace --exclude memory64",
+    "cargo build --target wasm32-unknown-unknown --profile profiling --workspace --exclude memory64 --exclude lockbench",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bumpalo.wasm",
     "wasm-bindgen --keep-debug --target web --out-dir ./src/wasm ./target/wasm32-unknown-unknown/profiling/alloc_bump_scope.wasm",

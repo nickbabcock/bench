@@ -6,7 +6,7 @@
  * Both questions are answered in one figure (Figure 1), one pair of rows
  * per workload, so more workloads can join it as rows.
  */
-import { ask, askReproduced, type Cell, type FigureQuestion, type Finding, pct, type Relative, reproducedIn, scopeOf, timeChange, withinBudget } from "@/lib/findings";
+import { ask, askReproduced, replicatesOf, type Cell, type FigureQuestion, type Finding, pct, type Relative, reproducedIn, scopeOf, timeChange, withinBudget } from "@/lib/findings";
 import { geomean, isPairedClaim, median, type PairedClaim, type PairedEffect } from "@/lib/stats";
 import { memorySame, timeEffect } from "./claims";
 import type { ResultRow } from "./harness";
@@ -176,11 +176,6 @@ export function gatedFindings(cells: readonly Memory64Cell[], replicates: readon
   return [time, ask(memory64Memory, cells)];
 }
 
-/** Replicates index by index across settings: replicate i has every setting with an i-th repeat. */
-export function replicatesOf<S>(settings: readonly S[], repeats: (s: S) => readonly ResultRow[], cellOf: (s: S, row: ResultRow) => Memory64Cell): Memory64Cell[][] {
-  const n = Math.max(0, ...settings.map((s) => repeats(s).length));
-  return Array.from({ length: n }, (_, i) => settings.flatMap((s) => (repeats(s)[i] ? [cellOf(s, repeats(s)[i])] : [])));
-}
 
 /**
  * The main points' findings over every setting of the edition (every

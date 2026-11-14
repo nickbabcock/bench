@@ -20,4 +20,11 @@ describe("ratio axis", () => {
     expect(s.ticks).toContain(1.1);
     expect(s.ticks.map(ratioTick).every((t) => /^(0|[+−]\d+(\.\d)?)%$/.test(t))).toBe(true);
   });
+  it("ticks a wide range at about 2× a step, not only at 1", () => {
+    // Figure 2 of the RefCell against Mutex page: 0.13× to 6× in a 280 px panel.
+    const s = ratioScale(0.13, 6, 0, 280, { measure: () => 26 });
+    const allowed = [0.1, 0.25, 0.5, 1, 2, 4, 10];
+    expect(s.ticks.every((t) => allowed.some((a) => Math.abs(a - t) < 1e-9))).toBe(true);
+    expect(s.ticks.length).toBeGreaterThanOrEqual(5);
+  });
 });
